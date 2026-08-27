@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tablón — avisos institucionales</title>
+<meta name="description" content="Notificaciones institucionales: el personal emite avisos y los estudiantes los confirman con OK.">
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0F6B66">
+<meta name="background-color" content="#F5F4EF">
+
+<link rel="icon" href="./favicon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tablón">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#F5F4EF;
+    --surface:#FFFFFF;
+    --surface-sunken:#EFEEE7;
+    --border:#E1DFD5;
+    --ink-900:#161B26;
+    --ink-700:#3D4457;
+    --ink-500:#6B7185;
+    --ink-on-accent:#FBFAF6;
+    --accent:#0F6B66;
+    --accent-strong:#0B4F4B;
+    --accent-soft:#DCEAE8;
+    --urgent:#B0521C;
+    --urgent-soft:#F6E2D2;
+    --ok:#2E7D4F;
+    --ok-soft:#DCEEE1;
+    --shadow: 0 1px 2px rgba(22,27,38,0.06), 0 8px 24px -12px rgba(22,27,38,0.18);
+    --focus-ring: 0 0 0 3px rgba(15,107,102,0.35);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11151C;
+      --surface:#181D27;
+      --surface-sunken:#1F2530;
+      --border:#2B3240;
+      --ink-900:#EEF0F4;
+      --ink-700:#B7BCC9;
+      --ink-500:#848CA0;
+      --ink-on-accent:#F4FBFA;
+      --accent:#2FA69E;
+      --accent-strong:#8FD9D2;
+      --accent-soft:#1C3634;
+      --urgent:#E08A4D;
+      --urgent-soft:#3B2A1C;
+      --ok:#63C186;
+      --ok-soft:#1E3628;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11151C;
+    --surface:#181D27;
+    --surface-sunken:#1F2530;
+    --border:#2B3240;
+    --ink-900:#EEF0F4;
+    --ink-700:#B7BCC9;
+    --ink-500:#848CA0;
+    --ink-on-accent:#F4FBFA;
+    --accent:#2FA69E;
+    --accent-strong:#8FD9D2;
+    --accent-soft:#1C3634;
+    --urgent:#E08A4D;
+    --urgent-soft:#3B2A1C;
+    --ok:#63C186;
+    --ok-soft:#1E3628;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink-900);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0; }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--accent-soft); }
+  :focus-visible{ outline:none; box-shadow:var(--focus-ring); border-radius:8px; }
+  @media (prefers-reduced-motion:no-preference){
+    .card, .btn, .chip, .toast{ transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, opacity 160ms ease; }
+  }
+
+  .shell{
+    display:grid;
+    grid-template-columns: 272px 1fr;
+    min-height:100vh;
+  }
+  @media (max-width: 860px){
+    .shell{ grid-template-columns: 1fr; }
+    .rail{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--border); }
+  }
+
+  /* ---------- Sidebar ---------- */
+  .rail{
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    padding:22px 18px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .brand{ display:flex; align-items:baseline; gap:8px; padding:0 2px; }
+  .brand .mark{
+    width:30px; height:30px; border-radius:8px;
+    background:var(--accent); color:var(--ink-on-accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif; font-weight:700; font-size:16px;
+    flex:none;
+  }
+  .brand h1{ font-size:21px; font-weight:600; color:var(--ink-900); }
+  .brand .tagline{ font-size:11.5px; color:var(--ink-500); margin-top:2px; letter-spacing:.01em; }
+
+  .rail-section-label{
+    font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-500); padding:0 4px;
+  }
+  .identity-list{ display:flex; flex-direction:column; gap:4px; }
+  .identity{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:10px;
+    border:1px solid transparent;
+    background:none; cursor:pointer; text-align:left; width:100%;
+    color:var(--ink-700);
+  }
+  .identity:hover{ background:var(--surface-sunken); }
+  .identity[aria-pressed="true"]{
+    background:var(--accent-soft); border-color:var(--accent); color:var(--ink-900);
+  }
+  .identity .avatar{
+    width:28px; height:28px; border-radius:50%; flex:none;
+    background:var(--surface-sunken); color:var(--ink-700);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:600;
+  }
+  .identity[aria-pressed="true"] .avatar{ background:var(--accent); color:var(--ink-on-accent); }
+  .identity .who{ display:flex; flex-direction:column; min-width:0; }
+  .identity .who .name{ font-size:13.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .identity .who .role{ font-size:11.5px; color:var(--ink-500); }
+  .identity[aria-pressed="true"] .who .role{ color:var(--accent-strong); }
+
+  .rail-footer{ margin-top:auto; display:flex; flex-direction:column; gap:8px; }
+  .reset-btn{
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    padding:8px 10px; border-radius:9px; border:1px solid var(--border);
+    background:none; color:var(--ink-500); font-size:12.5px; cursor:pointer;
+  }
+  .reset-btn:hover{ color:var(--ink-900); border-color:var(--ink-500); }
+
+  /* ---------- Main ---------- */
+  main{ padding:28px 32px 60px; max-width:840px; }
+  @media (max-width: 600px){ main{ padding:20px 16px 48px; } }
+
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap; }
+  .topbar h2{ font-size:26px; font-weight:600; }
+  .topbar .sub{ color:var(--ink-500); font-size:13.5px; margin-top:4px; }
+
+  .tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:22px; }
+  .tab{
+    padding:9px 4px; margin-right:18px; background:none; border:none; cursor:pointer;
+    font-size:13.5px; font-weight:500; color:var(--ink-500);
+    border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab[aria-selected="true"]{ color:var(--ink-900); border-bottom-color:var(--accent); }
+  .tab:hover{ color:var(--ink-900); }
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .stack{ display:flex; flex-direction:column; gap:14px; }
+
+  /* Compose form */
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .field label{ font-size:12.5px; font-weight:600; color:var(--ink-700); }
+  .field .hint{ font-size:11.5px; color:var(--ink-500); }
+  input[type="text"], textarea, select{
+    font: inherit; font-size:14px;
+    background:var(--surface-sunken); color:var(--ink-900);
+    border:1px solid var(--border); border-radius:9px;
+    padding:9px 11px; width:100%;
+  }
+  textarea{ resize:vertical; min-height:84px; }
+  .radio-row{ display:flex; flex-direction:column; gap:8px; }
+  .radio-opt{ display:flex; align-items:center; gap:9px; padding:9px 10px; border:1px solid var(--border); border-radius:9px; cursor:pointer; }
+  .radio-opt input{ accent-color:var(--accent); }
+  .radio-opt .extra{ margin-left:auto; min-width:180px; }
+  .priority-row{ display:flex; gap:8px; }
+  .priority-opt{ flex:1; text-align:center; padding:9px; border:1px solid var(--border); border-radius:9px; cursor:pointer; font-size:13px; font-weight:500; color:var(--ink-700); }
+  .priority-opt input{ display:none; }
+  .priority-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-soft); color:var(--ink-900); }
+  .priority-opt.urgente:has(input:checked){ border-color:var(--urgent); background:var(--urgent-soft); color:var(--urgent); }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 18px; border-radius:9px; border:1px solid transparent;
+    font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{ background:var(--accent); color:var(--ink-on-accent); }
+  .btn-primary:hover{ background:var(--accent-strong); }
+  .btn-ghost{ background:none; border-color:var(--border); color:var(--ink-700); }
+  .btn-ghost:hover{ border-color:var(--ink-500); color:var(--ink-900); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+
+  /* Notification card (staff view) */
+  .noti-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; }
+  .noti-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .noti-title{ font-size:15.5px; font-weight:600; }
+  .noti-meta{ font-size:12px; color:var(--ink-500); margin-top:3px; }
+  .noti-msg{ font-size:13.5px; color:var(--ink-700); margin:10px 0 12px; }
+  .badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px; letter-spacing:.02em; white-space:nowrap; }
+  .badge-urgente{ background:var(--urgent-soft); color:var(--urgent); }
+  .badge-normal{ background:var(--surface-sunken); color:var(--ink-500); }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:4px; }
+  .progress-track{ flex:1; height:6px; border-radius:99px; background:var(--surface-sunken); overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--ok); border-radius:99px; }
+  .progress-label{ font-size:11.5px; color:var(--ink-500); white-space:nowrap; }
+
+  /* Student feed card */
+  .feed-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:17px 19px; }
+  .feed-card.urgente{ border-color:color-mix(in srgb, var(--urgent) 45%, var(--border)); }
+  .sender-row{ display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+  .sender-avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--surface-sunken); color:var(--ink-700);
+    display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:600; flex:none;
+  }
+  .sender-name{ font-size:13px; font-weight:600; }
+  .sender-role{ font-size:11.5px; color:var(--ink-500); }
+  .feed-card h3{ font-size:16.5px; font-weight:600; margin-bottom:6px; }
+  .feed-msg{ font-size:14px; color:var(--ink-700); margin-bottom:14px; }
+  .feed-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .feed-time{ font-size:11.5px; color:var(--ink-500); }
+  .ok-btn{
+    display:inline-flex; align-items:center; gap:7px; padding:8px 20px; border-radius:99px;
+    background:var(--accent); color:var(--ink-on-accent); border:none; font-weight:700; font-size:13px;
+    cursor:pointer; letter-spacing:.02em;
+  }
+  .ok-btn:hover{ background:var(--accent-strong); }
+  .confirmed-pill{
+    display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:99px;
+    background:var(--ok-soft); color:var(--ok); font-weight:600; font-size:12.5px;
+  }
+
+  .empty{ text-align:center; padding:48px 20px; color:var(--ink-500); }
+  .empty h3{ font-size:16px; color:var(--ink-900); margin-bottom:6px; }
+  .empty p{ font-size:13px; max-width:340px; margin:0 auto; }
+
+  .callout{
+    display:flex; gap:10px; align-items:flex-start;
+    background:var(--surface-sunken); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; font-size:12.5px; color:var(--ink-700); margin-bottom:20px;
+  }
+  .callout .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex:none; }
+
+  .audit-row{ display:flex; align-items:center; gap:10px; padding:11px 4px; border-bottom:1px solid var(--border); font-size:13px; }
+  .audit-row:last-child{ border-bottom:none; }
+  .audit-emisor{ width:150px; flex:none; color:var(--ink-500); font-size:12px; }
+  .audit-title{ flex:1; font-weight:500; }
+  .audit-stats{ font-size:11.5px; color:var(--ink-500); flex:none; }
+
+  .toast-wrap{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:40; display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .toast{
+    background:var(--ink-900); color:var(--bg); font-size:13px; font-weight:500;
+    padding:10px 18px; border-radius:99px; box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:8px;
+  }
+</style>
+
+<div class="shell">
+  <nav class="rail" aria-label="Cambiar de usuario de prueba">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">T</span>
+      <div>
+        <h1>Tablón</h1>
+        <div class="tagline">avisos institucionales</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="rail-section-label" style="margin-bottom:8px;">Personal</div>
+      <div class="identity-list" id="staff-list"></div>
+    </div>
+
+    <div>
+      <div class="rail-section-label" style="margin-bottom:8px;">Estudiantes</div>
+      <div class="identity-list" id="student-list"></div>
+    </div>
+
+    <div class="rail-footer">
+      <button class="reset-btn" id="install-btn" type="button" hidden>⭳ Instalar app</button>
+      <button class="reset-btn" id="reset-demo" type="button">↺ Reiniciar demo</button>
+    </div>
+  </nav>
+
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var COHORTES = { "1A": "1er año · Comisión A", "2B": "2do año · Comisión B", "3C": "3er año · Comisión C" };
+
+  var SEED_USERS = [
+    { id:"staff-secretaria", name:"Secretaría Académica", role:"secretaria", roleLabel:"Secretaría", initials:"SA" },
+    { id:"staff-docente",    name:"Prof. Marina Ibarra",  role:"docente",    roleLabel:"Docente · Programación II", initials:"MI", cohorte:"2B" },
+    { id:"staff-direccion",  name:"Dirección de Carrera", role:"direccion",  roleLabel:"Dirección", initials:"DC" },
+    { id:"staff-seguridad",  name:"Seguridad y Control",  role:"seguridad",  roleLabel:"Seguridad y control", initials:"SC" },
+
+    { id:"est-1", name:"Julián Rossi",   role:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B", selectable:true },
+    { id:"est-2", name:"Bianca Sosa",    role:"estudiante", roleLabel:"Estudiante", initials:"BS", cohorte:"1A", selectable:true },
+    { id:"est-3", name:"Nicolás Vera",   role:"estudiante", initials:"NV", cohorte:"2B" },
+    { id:"est-4", name:"Camila Duarte",  role:"estudiante", initials:"CD", cohorte:"2B" },
+    { id:"est-5", name:"Federico Paz",   role:"estudiante", initials:"FP", cohorte:"1A" },
+    { id:"est-6", name:"Agostina Melo",  role:"estudiante", initials:"AM", cohorte:"1A" },
+    { id:"est-7", name:"Tomás Ledesma",  role:"estudiante", initials:"TL", cohorte:"3C" },
+    { id:"est-8", name:"Rocío Aguirre",  role:"estudiante", initials:"RA", cohorte:"3C" },
+    { id:"est-9", name:"Iván Correa",    role:"estudiante", initials:"IC", cohorte:"3C" },
+    { id:"est-10", name:"Sol Herrera",   role:"estudiante", initials:"SH", cohorte:"2B" }
+  ];
+
+  function hoursAgo(h){ return new Date(Date.now() - h*3600*1000).toISOString(); }
+  function studentsIn(destTipo, destValor){
+    return SEED_USERS.filter(function(u){
+      if (u.role !== "estudiante") return false;
+      if (destTipo === "institucion") return true;
+      if (destTipo === "cohorte") return u.cohorte === destValor;
+      if (destTipo === "individual") return u.id === destValor;
+      return false;
+    }).map(function(u){ return u.id; });
+  }
+
+  function seedState(){
+    var n1 = { id:"n1", emisorId:"staff-direccion", titulo:"Corte de suministro eléctrico el viernes",
+      mensaje:"El viernes 21/8 de 9 a 13hs habrá corte de luz programado en todo el edificio por trabajos de mantenimiento. No habrá clases presenciales en ese horario.",
+      prioridad:"normal", destTipo:"institucion", destValor:null, fecha:hoursAgo(50) };
+    var n2 = { id:"n2", emisorId:"staff-seguridad", titulo:"Simulacro de evacuación — jueves 10hs",
+      mensaje:"El jueves a las 10hs se realizará un simulacro de evacuación obligatorio. Al sonar la alarma, dirigirse con calma a la puerta más cercana y esperar indicaciones del personal de seguridad en el punto de encuentro del patio.",
+      prioridad:"urgente", destTipo:"institucion", destValor:null, fecha:hoursAgo(26) };
+    var n3 = { id:"n3", emisorId:"staff-secretaria", titulo:"Vence la entrega de la libreta universitaria",
+      mensaje:"Recordamos que el viernes 28/8 vence el plazo para entregar la libreta universitaria en mesa de entradas para actualizar el legajo. Quienes no la entreguen no podrán inscribirse a final.",
+      prioridad:"normal", destTipo:"cohorte", destValor:"2B", fecha:hoursAgo(20) };
+    var n4 = { id:"n4", emisorId:"staff-docente", titulo:"Se suspende la clase del martes",
+      mensaje:"La clase de Programación II del martes 25/8 queda suspendida por actividad institucional. Se recupera el jueves en el mismo horario.",
+      prioridad:"urgente", destTipo:"cohorte", destValor:"2B", fecha:hoursAgo(4) };
+
+    [n1,n2,n3,n4].forEach(function(n){ n.destinatarios = studentsIn(n.destTipo, n.destValor); });
+
+    var confirmations = [];
+    // realistic partial confirmation spread for the broadcast/cohort notices
+    var confirmedFor = {
+      n1: ["est-1","est-2","est-3","est-5","est-6","est-7","est-8","est-9"],
+      n2: ["est-3","est-4","est-6","est-9"],
+      n3: ["est-4","est-10"]
+    };
+    Object.keys(confirmedFor).forEach(function(nid){
+      confirmedFor[nid].forEach(function(sid, i){
+        confirmations.push({ notifId:nid, estudianteId:sid, fecha: hoursAgo(Math.max(1, 40 - i*3)) });
+      });
+    });
+
+    return {
+      currentUserId: "staff-secretaria",
+      activeTab: "nueva",
+      notifications: [n4,n3,n2,n1],
+      confirmations: confirmations
+    };
+  }
+
+  var STORAGE_KEY = "tablon_state_v1";
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return seedState();
+      var parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.notifications)) return seedState();
+      return parsed;
+    }catch(e){ return seedState(); }
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ /* private mode / quota: ignore, state stays in memory */ }
+  }
+
+  var state = loadState();
+
+  function byId(id){ return SEED_USERS.filter(function(u){ return u.id === id; })[0]; }
+  function currentUser(){ return byId(state.currentUserId); }
+
+  function fmtDateTime(iso){
+    try{
+      return new Intl.DateTimeFormat("es-AR", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }).format(new Date(iso));
+    }catch(e){ return iso; }
+  }
+  function destinatarioLabel(n){
+    if (n.destTipo === "institucion") return "Toda la institución";
+    if (n.destTipo === "cohorte") return COHORTES[n.destValor] || n.destValor;
+    if (n.destTipo === "individual") { var u = byId(n.destValor); return u ? u.name : "Estudiante"; }
+    return "";
+  }
+  function confirmationsFor(notifId){
+    return state.confirmations.filter(function(c){ return c.notifId === notifId; });
+  }
+  function isConfirmedBy(notifId, studentId){
+    return state.confirmations.some(function(c){ return c.notifId === notifId && c.estudianteId === studentId; });
+  }
+  function confirmedAt(notifId, studentId){
+    var c = state.confirmations.filter(function(c){ return c.notifId === notifId && c.estudianteId === studentId; })[0];
+    return c ? c.fecha : null;
+  }
+
+  function toast(msg){
+    var wrap = document.getElementById("toast-wrap");
+    var el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(function(){ el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 1900);
+    setTimeout(function(){ wrap.removeChild(el); }, 2300);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  /* ---------------- Sidebar ---------------- */
+  function renderRail(){
+    var staffHtml = SEED_USERS.filter(function(u){ return u.role !== "estudiante"; }).map(identityBtn).join("");
+    var studentHtml = SEED_USERS.filter(function(u){ return u.selectable; }).map(identityBtn).join("");
+    document.getElementById("staff-list").innerHTML = staffHtml;
+    document.getElementById("student-list").innerHTML = studentHtml;
+
+    document.querySelectorAll(".identity").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.currentUserId = btn.getAttribute("data-id");
+        state.activeTab = (byId(state.currentUserId).role === "estudiante") ? "bandeja" : "nueva";
+        saveState();
+        renderAll();
+      });
+    });
+  }
+  function identityBtn(u){
+    var pressed = u.id === state.currentUserId;
+    return '<button type="button" class="identity" data-id="' + u.id + '" aria-pressed="' + pressed + '">' +
+      '<span class="avatar">' + u.initials + '</span>' +
+      '<span class="who"><span class="name">' + escapeHtml(u.name) + '</span>' +
+      '<span class="role">' + escapeHtml(u.roleLabel || (COHORTES[u.cohorte]||"")) + '</span></span>' +
+      '</button>';
+  }
+
+  /* ---------------- Main: staff (emisor) view ---------------- */
+  function renderStaffMain(user){
+    var isDireccion = user.role === "direccion";
+    var tabs = [
+      ["nueva", "Nueva notificación"],
+      ["enviadas", "Enviadas por mí"]
+    ];
+    if (isDireccion) tabs.push(["historial", "Historial institucional"]);
+
+    var tabsHtml = tabs.map(function(t){
+      var sel = state.activeTab === t[0];
+      return '<button class="tab" role="tab" aria-selected="' + sel + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
+    }).join("");
+
+    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.name.split(" ")[0]) + '</h2>' +
+      '<div class="sub">' + escapeHtml(user.roleLabel) + ' — emitís avisos para los estudiantes</div></div></div>' +
+      '<div class="tabs" role="tablist">' + tabsHtml + '</div>' +
+      '<div id="tab-body"></div>';
+    document.getElementById("main").innerHTML = html;
+
+    document.querySelectorAll(".tab").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.activeTab = btn.getAttribute("data-tab");
+        saveState();
+        renderAll();
+      });
+    });
+
+    var body = document.getElementById("tab-body");
+    if (state.activeTab === "nueva") body.innerHTML = composeFormHtml();
+    else if (state.activeTab === "enviadas") body.innerHTML = sentListHtml(user.id, false);
+    else body.innerHTML = sentListHtml(null, true);
+
+    if (state.activeTab === "nueva") wireComposeForm();
+  }
+
+  function composeFormHtml(){
+    var cohorteOptions = Object.keys(COHORTES).map(function(k){ return '<option value="' + k + '">' + COHORTES[k] + '</option>'; }).join("");
+    var studentOptions = SEED_USERS.filter(function(u){ return u.role === "estudiante"; })
+      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
+
+    return '<form class="card stack" id="compose-form">' +
+      '<div class="field"><label for="f-titulo">Título</label>' +
+      '<input type="text" id="f-titulo" maxlength="90" placeholder="Ej: Cambio de aula para el examen final" required></div>' +
+
+      '<div class="field"><label for="f-mensaje">Mensaje</label>' +
+      '<textarea id="f-mensaje" maxlength="600" placeholder="Escribí el aviso completo. Los estudiantes lo van a ver tal cual, sin poder responder." required></textarea>' +
+      '<span class="hint">Este es un canal de un solo sentido: el estudiante solo puede confirmar que lo leyó.</span></div>' +
+
+      '<div class="field"><label>Prioridad</label>' +
+      '<div class="priority-row">' +
+      '<label class="priority-opt"><input type="radio" name="f-prioridad" value="normal" checked>Normal</label>' +
+      '<label class="priority-opt urgente"><input type="radio" name="f-prioridad" value="urgente">Urgente</label>' +
+      '</div></div>' +
+
+      '<div class="field"><label>Destinatarios</label>' +
+      '<div class="radio-row">' +
+      '<label class="radio-opt"><input type="radio" name="f-dest" value="institucion" checked>Toda la institución</label>' +
+      '<label class="radio-opt"><input type="radio" name="f-dest" value="cohorte">Una carrera / comisión' +
+      '<select class="extra" id="f-cohorte">' + cohorteOptions + '</select></label>' +
+      '<label class="radio-opt"><input type="radio" name="f-dest" value="individual">Un estudiante' +
+      '<select class="extra" id="f-estudiante">' + studentOptions + '</select></label>' +
+      '</div></div>' +
+
+      '<div><button type="submit" class="btn btn-primary">Enviar notificación</button></div>' +
+      '</form>';
+  }
+
+  function wireComposeForm(){
+    var form = document.getElementById("compose-form");
+    form.addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var titulo = document.getElementById("f-titulo").value.trim();
+      var mensaje = document.getElementById("f-mensaje").value.trim();
+      if (!titulo || !mensaje) return;
+      var prioridad = form.querySelector('input[name="f-prioridad"]:checked').value;
+      var destTipo = form.querySelector('input[name="f-dest"]:checked').value;
+      var destValor = destTipo === "cohorte" ? document.getElementById("f-cohorte").value
+                     : destTipo === "individual" ? document.getElementById("f-estudiante").value
+                     : null;
+
+      var n = {
+        id: "n" + Date.now(),
+        emisorId: state.currentUserId,
+        titulo: titulo, mensaje: mensaje, prioridad: prioridad,
+        destTipo: destTipo, destValor: destValor,
+        fecha: new Date().toISOString()
+      };
+      n.destinatarios = studentsIn(destTipo, destValor);
+      state.notifications.unshift(n);
+      state.activeTab = "enviadas";
+      saveState();
+      renderAll();
+      toast("Notificación enviada a " + n.destinatarios.length + " estudiante" + (n.destinatarios.length===1?"":"s"));
+    });
+  }
+
+  function sentListHtml(emisorId, isAudit){
+    var list = state.notifications.filter(function(n){ return isAudit || n.emisorId === emisorId; });
+    if (!list.length){
+      return '<div class="card empty"><h3>Todavía no enviaste nada</h3><p>Cuando envíes una notificación, vas a poder ver acá cuántos estudiantes la confirmaron.</p></div>';
+    }
+    if (isAudit){
+      return '<div class="card" style="padding:6px 20px;">' + list.map(auditRow).join("") + '</div>';
+    }
+    return '<div class="stack">' + list.map(sentCard).join("") + '</div>';
+  }
+
+  function sentCard(n){
+    var confs = confirmationsFor(n.id);
+    var total = n.destinatarios.length;
+    var pct = total ? Math.round(100 * confs.length / total) : 0;
+    return '<div class="noti-card">' +
+      '<div class="noti-head"><div>' +
+      '<div class="noti-title">' + escapeHtml(n.titulo) + '</div>' +
+      '<div class="noti-meta">' + destinatarioLabel(n) + ' · ' + fmtDateTime(n.fecha) + '</div>' +
+      '</div>' + priorityBadge(n.prioridad) + '</div>' +
+      '<div class="noti-msg">' + escapeHtml(n.mensaje) + '</div>' +
+      '<div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="progress-label mono">' + confs.length + '/' + total + ' confirmaron</span></div>' +
+      '</div>';
+  }
+
+  function auditRow(n){
+    var emisor = byId(n.emisorId);
+    var confs = confirmationsFor(n.id);
+    return '<div class="audit-row">' +
+      '<span class="audit-emisor">' + escapeHtml(emisor ? emisor.roleLabel.split(" · ")[0] : "") + '</span>' +
+      '<span class="audit-title">' + escapeHtml(n.titulo) + '<br><span style="color:var(--ink-500); font-size:11.5px;">' + destinatarioLabel(n) + ' · ' + fmtDateTime(n.fecha) + '</span></span>' +
+      '<span class="audit-stats mono">' + confs.length + '/' + n.destinatarios.length + '</span>' +
+      '</div>';
+  }
+
+  function priorityBadge(p){
+    return p === "urgente" ? '<span class="badge badge-urgente">● Urgente</span>' : '<span class="badge badge-normal">Normal</span>';
+  }
+
+  /* ---------------- Main: student view ---------------- */
+  function renderStudentMain(user){
+    var mine = state.notifications.filter(function(n){ return n.destinatarios.indexOf(user.id) !== -1; });
+    mine.sort(function(a,b){
+      var aUn = !isConfirmedBy(a.id, user.id), bUn = !isConfirmedBy(b.id, user.id);
+      if (aUn !== bUn) return aUn ? -1 : 1;
+      return new Date(b.fecha) - new Date(a.fecha);
+    });
+
+    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.name.split(" ")[0]) + '</h2>' +
+      '<div class="sub">' + COHORTES[user.cohorte] + '</div></div></div>' +
+      '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, docentes, dirección y seguridad. Solo podés confirmar que los leíste con «OK» — no se pueden responder ni reenviar.</span></div>';
+
+    if (!mine.length){
+      html += '<div class="card empty"><h3>No tenés avisos por ahora</h3><p>Cuando alguien te envíe una notificación, va a aparecer acá.</p></div>';
+    } else {
+      html += '<div class="stack">' + mine.map(function(n){ return feedCard(n, user.id); }).join("") + '</div>';
+    }
+    document.getElementById("main").innerHTML = html;
+
+    document.querySelectorAll(".ok-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var nid = btn.getAttribute("data-nid");
+        state.confirmations.push({ notifId: nid, estudianteId: user.id, fecha: new Date().toISOString() });
+        saveState();
+        renderAll();
+        toast("Confirmado");
+      });
+    });
+  }
+
+  function feedCard(n, studentId){
+    var emisor = byId(n.emisorId);
+    var confirmed = isConfirmedBy(n.id, studentId);
+    var when = confirmedAt(n.id, studentId);
+    return '<div class="feed-card' + (n.prioridad === "urgente" ? " urgente" : "") + '">' +
+      '<div class="sender-row"><span class="sender-avatar">' + emisor.initials + '</span>' +
+      '<div><div class="sender-name">' + escapeHtml(emisor.name) + '</div>' +
+      '<div class="sender-role">' + escapeHtml(emisor.roleLabel) + '</div></div>' +
+      '<span style="margin-left:auto;">' + priorityBadge(n.prioridad) + '</span></div>' +
+      '<h3>' + escapeHtml(n.titulo) + '</h3>' +
+      '<div class="feed-msg">' + escapeHtml(n.mensaje) + '</div>' +
+      '<div class="feed-foot"><span class="feed-time mono">' + fmtDateTime(n.fecha) + '</span>' +
+      (confirmed
+        ? '<span class="confirmed-pill">✓ Confirmado · ' + fmtDateTime(when) + '</span>'
+        : '<button type="button" class="ok-btn" data-nid="' + n.id + '">OK, lo leí</button>') +
+      '</div></div>';
+  }
+
+  /* ---------------- Orchestration ---------------- */
+  function renderAll(){
+    renderRail();
+    var user = currentUser();
+    if (!user){ state.currentUserId = "staff-secretaria"; user = currentUser(); }
+    if (user.role === "estudiante") renderStudentMain(user);
+    else renderStaffMain(user);
+  }
+
+  document.getElementById("reset-demo").addEventListener("click", function(){
+    state = seedState();
+    saveState();
+    renderAll();
+    toast("Demo reiniciada");
+  });
+
+  renderAll();
+
+  // --- Instalación como PWA ---
+  var deferredPrompt = null;
+  var installBtn = document.getElementById("install-btn");
+  window.addEventListener("beforeinstallprompt", function(ev){
+    ev.preventDefault();
+    deferredPrompt = ev;
+    installBtn.hidden = false;
+  });
+  installBtn.addEventListener("click", function(){
+    if (!deferredPrompt) return;
+    installBtn.hidden = true;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; });
+  });
+  window.addEventListener("appinstalled", function(){
+    installBtn.hidden = true;
+    toast("Tablón instalado");
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("./service-worker.js").catch(function(){ /* offline install still works without SW */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
