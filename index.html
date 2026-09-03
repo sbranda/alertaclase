@@ -102,8 +102,9 @@
   button{ font-family:inherit; }
   ::selection{ background:var(--accent-soft); }
   :focus-visible{ outline:none; box-shadow:var(--focus-ring); border-radius:8px; }
+  [hidden]{ display:none !important; }
   @media (prefers-reduced-motion:no-preference){
-    .card, .btn, .chip, .toast{ transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, opacity 160ms ease; }
+    .card, .btn, .chip, .toast, .auth-card{ transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, opacity 160ms ease; }
   }
 
   .shell{
@@ -144,29 +145,21 @@
     font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
     color:var(--ink-500); padding:0 4px;
   }
-  .identity-list{ display:flex; flex-direction:column; gap:4px; }
-  .identity{
+
+  .session-card{
     display:flex; align-items:center; gap:10px;
-    padding:9px 10px; border-radius:10px;
-    border:1px solid transparent;
-    background:none; cursor:pointer; text-align:left; width:100%;
-    color:var(--ink-700);
+    padding:12px; border:1px solid var(--border); border-radius:12px;
+    background:var(--surface-sunken);
   }
-  .identity:hover{ background:var(--surface-sunken); }
-  .identity[aria-pressed="true"]{
-    background:var(--accent-soft); border-color:var(--accent); color:var(--ink-900);
-  }
-  .identity .avatar{
-    width:28px; height:28px; border-radius:50%; flex:none;
-    background:var(--surface-sunken); color:var(--ink-700);
+  .session-card .avatar{
+    width:36px; height:36px; border-radius:50%; flex:none;
+    background:var(--accent); color:var(--ink-on-accent);
     display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:600;
+    font-size:14px; font-weight:700;
   }
-  .identity[aria-pressed="true"] .avatar{ background:var(--accent); color:var(--ink-on-accent); }
-  .identity .who{ display:flex; flex-direction:column; min-width:0; }
-  .identity .who .name{ font-size:13.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .identity .who .role{ font-size:11.5px; color:var(--ink-500); }
-  .identity[aria-pressed="true"] .who .role{ color:var(--accent-strong); }
+  .session-card .who{ min-width:0; }
+  .session-card .name{ font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .session-card .role{ font-size:11.5px; color:var(--ink-500); }
 
   .rail-footer{ margin-top:auto; display:flex; flex-direction:column; gap:8px; }
   .reset-btn{
@@ -199,11 +192,11 @@
   }
   .stack{ display:flex; flex-direction:column; gap:14px; }
 
-  /* Compose form */
+  /* Forms (compose + auth share these) */
   .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
   .field label{ font-size:12.5px; font-weight:600; color:var(--ink-700); }
   .field .hint{ font-size:11.5px; color:var(--ink-500); }
-  input[type="text"], textarea, select{
+  input[type="text"], input[type="password"], textarea, select{
     font: inherit; font-size:14px;
     background:var(--surface-sunken); color:var(--ink-900);
     border:1px solid var(--border); border-radius:9px;
@@ -223,13 +216,51 @@
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
     padding:10px 18px; border-radius:9px; border:1px solid transparent;
-    font-size:13.5px; font-weight:600; cursor:pointer;
+    font-size:13.5px; font-weight:600; cursor:pointer; width:100%;
   }
   .btn-primary{ background:var(--accent); color:var(--ink-on-accent); }
   .btn-primary:hover{ background:var(--accent-strong); }
   .btn-ghost{ background:none; border-color:var(--border); color:var(--ink-700); }
   .btn-ghost:hover{ border-color:var(--ink-500); color:var(--ink-900); }
   .btn:disabled{ opacity:.55; cursor:default; }
+
+  /* ---------- Auth (login / crear cuenta) ---------- */
+  .auth-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px; background:var(--bg);
+  }
+  .auth-card{
+    width:100%; max-width:408px; background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:30px 28px 26px; box-shadow:var(--shadow);
+  }
+  .auth-brand{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .auth-brand .mark{
+    width:34px; height:34px; border-radius:9px; flex:none;
+    background:var(--accent); color:var(--ink-on-accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif; font-weight:700; font-size:17px;
+  }
+  .auth-brand h1{ font-size:22px; font-weight:600; }
+  .auth-sub{ font-size:12.5px; color:var(--ink-500); margin:2px 0 22px 44px; }
+  .auth-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+  .auth-tab{
+    padding:9px 2px; margin-right:20px; background:none; border:none; cursor:pointer;
+    font-size:13.5px; font-weight:600; color:var(--ink-500);
+    border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .auth-tab[aria-selected="true"]{ color:var(--ink-900); border-bottom-color:var(--accent); }
+  .auth-error{
+    font-size:12.5px; color:var(--urgent); background:var(--urgent-soft);
+    border-radius:9px; padding:9px 12px; margin-bottom:16px;
+  }
+  .auth-row-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .auth-hint{ font-size:11.5px; color:var(--ink-500); margin-top:18px; line-height:1.55; text-align:center; }
+  .auth-hint b{ color:var(--ink-700); font-family:"IBM Plex Mono", monospace; font-weight:500; }
+  .auth-reset-link{
+    display:block; margin:14px auto 0; background:none; border:none; cursor:pointer;
+    font-size:11.5px; color:var(--ink-500); text-decoration:underline; text-underline-offset:2px;
+  }
+  .auth-reset-link:hover{ color:var(--ink-900); }
 
   /* Notification card (staff view) */
   .noti-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; }
@@ -295,8 +326,20 @@
   }
 </style>
 
-<div class="shell">
-  <nav class="rail" aria-label="Cambiar de usuario de prueba">
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand"><span class="mark" aria-hidden="true">T</span><h1>Tablón</h1></div>
+    <p class="auth-sub">avisos institucionales</p>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab" id="auth-tab-login" role="tab">Iniciar sesión</button>
+      <button type="button" class="auth-tab" id="auth-tab-register" role="tab">Crear cuenta</button>
+    </div>
+    <div id="auth-body"></div>
+  </div>
+</div>
+
+<div class="shell" id="shell" hidden>
+  <nav class="rail" aria-label="Cuenta">
     <div class="brand">
       <span class="mark" aria-hidden="true">T</span>
       <div>
@@ -305,18 +348,11 @@
       </div>
     </div>
 
-    <div>
-      <div class="rail-section-label" style="margin-bottom:8px;">Personal</div>
-      <div class="identity-list" id="staff-list"></div>
-    </div>
-
-    <div>
-      <div class="rail-section-label" style="margin-bottom:8px;">Estudiantes</div>
-      <div class="identity-list" id="student-list"></div>
-    </div>
+    <div id="session-panel"></div>
 
     <div class="rail-footer">
       <button class="reset-btn" id="install-btn" type="button" hidden>⭳ Instalar app</button>
+      <button class="reset-btn" id="logout-btn" type="button">⇥ Cerrar sesión</button>
       <button class="reset-btn" id="reset-demo" type="button">↺ Reiniciar demo</button>
     </div>
   </nav>
@@ -331,29 +367,46 @@
   "use strict";
 
   var COHORTES = { "1A": "1er año · Comisión A", "2B": "2do año · Comisión B", "3C": "3er año · Comisión C" };
+  var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Dirección", seguridad:"Seguridad y control", estudiante:"Estudiante" };
+  var DEMO_PASSWORD = "demo1234";
 
-  var SEED_USERS = [
-    { id:"staff-secretaria", name:"Secretaría Académica", role:"secretaria", roleLabel:"Secretaría", initials:"SA" },
-    { id:"staff-docente",    name:"Prof. Marina Ibarra",  role:"docente",    roleLabel:"Docente · Programación II", initials:"MI", cohorte:"2B" },
-    { id:"staff-direccion",  name:"Dirección de Carrera", role:"direccion",  roleLabel:"Dirección", initials:"DC" },
-    { id:"staff-seguridad",  name:"Seguridad y Control",  role:"seguridad",  roleLabel:"Seguridad y control", initials:"SC" },
+  // Cuentas de ejemplo precargadas (login: usuario / demo1234).
+  var SEED_ACCOUNTS = [
+    { id:"staff-secretaria", nombre:"Secretaría Académica", usuario:"secretaria", rol:"secretaria", roleLabel:"Secretaría", initials:"SA" },
+    { id:"staff-docente",    nombre:"Prof. Marina Ibarra",  usuario:"docente",    rol:"docente",    roleLabel:"Docente · Programación II", initials:"MI", cohorte:"2B" },
+    { id:"staff-direccion",  nombre:"Dirección de Carrera", usuario:"direccion",  rol:"direccion",  roleLabel:"Dirección", initials:"DC" },
+    { id:"staff-seguridad",  nombre:"Seguridad y Control",  usuario:"seguridad",  rol:"seguridad",  roleLabel:"Seguridad y control", initials:"SC" },
+    { id:"est-1", nombre:"Julián Rossi", usuario:"julian", rol:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B" },
+    { id:"est-2", nombre:"Bianca Sosa",  usuario:"bianca", rol:"estudiante", roleLabel:"Estudiante", initials:"BS", cohorte:"1A" }
+  ];
 
-    { id:"est-1", name:"Julián Rossi",   role:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B", selectable:true },
-    { id:"est-2", name:"Bianca Sosa",    role:"estudiante", roleLabel:"Estudiante", initials:"BS", cohorte:"1A", selectable:true },
-    { id:"est-3", name:"Nicolás Vera",   role:"estudiante", initials:"NV", cohorte:"2B" },
-    { id:"est-4", name:"Camila Duarte",  role:"estudiante", initials:"CD", cohorte:"2B" },
-    { id:"est-5", name:"Federico Paz",   role:"estudiante", initials:"FP", cohorte:"1A" },
-    { id:"est-6", name:"Agostina Melo",  role:"estudiante", initials:"AM", cohorte:"1A" },
-    { id:"est-7", name:"Tomás Ledesma",  role:"estudiante", initials:"TL", cohorte:"3C" },
-    { id:"est-8", name:"Rocío Aguirre",  role:"estudiante", initials:"RA", cohorte:"3C" },
-    { id:"est-9", name:"Iván Correa",    role:"estudiante", initials:"IC", cohorte:"3C" },
-    { id:"est-10", name:"Sol Herrera",   role:"estudiante", initials:"SH", cohorte:"2B" }
+  // Resto del padrón de estudiantes: ya existen en la institución pero todavía no se crearon una cuenta.
+  // Cuentan para el destinatario "toda la institución" / "carrera-comisión" y para las estadísticas de confirmación,
+  // no para iniciar sesión.
+  var ROSTER_STUDENTS = [
+    { id:"est-3", nombre:"Nicolás Vera",  rol:"estudiante", initials:"NV", cohorte:"2B" },
+    { id:"est-4", nombre:"Camila Duarte", rol:"estudiante", initials:"CD", cohorte:"2B" },
+    { id:"est-5", nombre:"Federico Paz",  rol:"estudiante", initials:"FP", cohorte:"1A" },
+    { id:"est-6", nombre:"Agostina Melo", rol:"estudiante", initials:"AM", cohorte:"1A" },
+    { id:"est-7", nombre:"Tomás Ledesma", rol:"estudiante", initials:"TL", cohorte:"3C" },
+    { id:"est-8", nombre:"Rocío Aguirre", rol:"estudiante", initials:"RA", cohorte:"3C" },
+    { id:"est-9", nombre:"Iván Correa",   rol:"estudiante", initials:"IC", cohorte:"3C" },
+    { id:"est-10", nombre:"Sol Herrera",  rol:"estudiante", initials:"SH", cohorte:"2B" }
   ];
 
   function hoursAgo(h){ return new Date(Date.now() - h*3600*1000).toISOString(); }
-  function studentsIn(destTipo, destValor){
-    return SEED_USERS.filter(function(u){
-      if (u.role !== "estudiante") return false;
+
+  async function sha256Hex(text){
+    var data = new TextEncoder().encode(text);
+    var digest = await crypto.subtle.digest("SHA-256", data);
+    return Array.prototype.map.call(new Uint8Array(digest), function(b){ return b.toString(16).padStart(2, "0"); }).join("");
+  }
+
+  function allStudents(accounts){
+    return ROSTER_STUDENTS.concat(accounts.filter(function(a){ return a.rol === "estudiante"; }));
+  }
+  function studentsIn(accounts, destTipo, destValor){
+    return allStudents(accounts).filter(function(u){
       if (destTipo === "institucion") return true;
       if (destTipo === "cohorte") return u.cohorte === destValor;
       if (destTipo === "individual") return u.id === destValor;
@@ -361,7 +414,7 @@
     }).map(function(u){ return u.id; });
   }
 
-  function seedState(){
+  function seedNotifications(accounts){
     var n1 = { id:"n1", emisorId:"staff-direccion", titulo:"Corte de suministro eléctrico el viernes",
       mensaje:"El viernes 21/8 de 9 a 13hs habrá corte de luz programado en todo el edificio por trabajos de mantenimiento. No habrá clases presenciales en ese horario.",
       prioridad:"normal", destTipo:"institucion", destValor:null, fecha:hoursAgo(50) };
@@ -375,10 +428,9 @@
       mensaje:"La clase de Programación II del martes 25/8 queda suspendida por actividad institucional. Se recupera el jueves en el mismo horario.",
       prioridad:"urgente", destTipo:"cohorte", destValor:"2B", fecha:hoursAgo(4) };
 
-    [n1,n2,n3,n4].forEach(function(n){ n.destinatarios = studentsIn(n.destTipo, n.destValor); });
+    [n1,n2,n3,n4].forEach(function(n){ n.destinatarios = studentsIn(accounts, n.destTipo, n.destValor); });
 
     var confirmations = [];
-    // realistic partial confirmation spread for the broadcast/cohort notices
     var confirmedFor = {
       n1: ["est-1","est-2","est-3","est-5","est-6","est-7","est-8","est-9"],
       n2: ["est-3","est-4","est-6","est-9"],
@@ -390,32 +442,73 @@
       });
     });
 
-    return {
-      currentUserId: "staff-secretaria",
-      activeTab: "nueva",
-      notifications: [n4,n3,n2,n1],
-      confirmations: confirmations
-    };
+    return { notifications:[n4,n3,n2,n1], confirmations:confirmations };
   }
 
-  var STORAGE_KEY = "tablon_state_v1";
-  function loadState(){
+  var ACCOUNTS_KEY = "tablon_accounts_v1";
+  var STATE_KEY = "tablon_state_v1";
+  var SESSION_KEY = "tablon_session_v1";
+
+  async function ensureAccounts(){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return seedState();
-      var parsed = JSON.parse(raw);
-      if (!parsed || !Array.isArray(parsed.notifications)) return seedState();
-      return parsed;
-    }catch(e){ return seedState(); }
+      var raw = localStorage.getItem(ACCOUNTS_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    }catch(e){ /* fall through to reseed */ }
+
+    var hash = await sha256Hex(DEMO_PASSWORD);
+    var accounts = SEED_ACCOUNTS.map(function(a){
+      var copy = {};
+      Object.keys(a).forEach(function(k){ copy[k] = a[k]; });
+      copy.passwordHash = hash;
+      return copy;
+    });
+    persistAccounts(accounts);
+    return accounts;
   }
-  function saveState(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ /* private mode / quota: ignore, state stays in memory */ }
+  function persistAccounts(accounts){
+    try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }catch(e){ /* private mode / quota: state stays in memory only */ }
   }
 
-  var state = loadState();
+  function loadNotifState(accounts){
+    try{
+      var raw = localStorage.getItem(STATE_KEY);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.notifications)) return parsed;
+      }
+    }catch(e){ /* fall through to reseed */ }
+    return seedNotifications(accounts);
+  }
+  function persistNotifState(){
+    try{ localStorage.setItem(STATE_KEY, JSON.stringify(notifState)); }catch(e){ /* ignore */ }
+  }
 
-  function byId(id){ return SEED_USERS.filter(function(u){ return u.id === id; })[0]; }
-  function currentUser(){ return byId(state.currentUserId); }
+  function loadSession(){
+    try{ return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }catch(e){ return null; }
+  }
+  function persistSession(){
+    try{
+      if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      else localStorage.removeItem(SESSION_KEY);
+    }catch(e){ /* ignore */ }
+  }
+
+  var accounts = [];
+  var notifState = { notifications:[], confirmations:[] };
+  var session = null;
+  var authTab = "login";
+  var authError = "";
+  var authDraft = {};
+
+  function byId(id){
+    var acc = accounts.filter(function(u){ return u.id === id; })[0];
+    if (acc) return acc;
+    return ROSTER_STUDENTS.filter(function(u){ return u.id === id; })[0];
+  }
+  function currentUser(){ return session ? byId(session.accountId) : null; }
 
   function fmtDateTime(iso){
     try{
@@ -425,17 +518,17 @@
   function destinatarioLabel(n){
     if (n.destTipo === "institucion") return "Toda la institución";
     if (n.destTipo === "cohorte") return COHORTES[n.destValor] || n.destValor;
-    if (n.destTipo === "individual") { var u = byId(n.destValor); return u ? u.name : "Estudiante"; }
+    if (n.destTipo === "individual") { var u = byId(n.destValor); return u ? u.nombre : "Estudiante"; }
     return "";
   }
   function confirmationsFor(notifId){
-    return state.confirmations.filter(function(c){ return c.notifId === notifId; });
+    return notifState.confirmations.filter(function(c){ return c.notifId === notifId; });
   }
   function isConfirmedBy(notifId, studentId){
-    return state.confirmations.some(function(c){ return c.notifId === notifId && c.estudianteId === studentId; });
+    return notifState.confirmations.some(function(c){ return c.notifId === notifId && c.estudianteId === studentId; });
   }
   function confirmedAt(notifId, studentId){
-    var c = state.confirmations.filter(function(c){ return c.notifId === notifId && c.estudianteId === studentId; })[0];
+    var c = notifState.confirmations.filter(function(c){ return c.notifId === notifId && c.estudianteId === studentId; })[0];
     return c ? c.fecha : null;
   }
 
@@ -446,7 +539,7 @@
     el.textContent = msg;
     wrap.appendChild(el);
     setTimeout(function(){ el.style.opacity = "0"; el.style.transform = "translateY(6px)"; }, 1900);
-    setTimeout(function(){ wrap.removeChild(el); }, 2300);
+    setTimeout(function(){ if (el.parentNode) wrap.removeChild(el); }, 2300);
   }
 
   function escapeHtml(s){
@@ -454,47 +547,171 @@
       return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
     });
   }
+  function initialsFrom(nombre){
+    var parts = nombre.trim().split(/\s+/);
+    var s = (parts[0] ? parts[0][0] : "") + (parts[1] ? parts[1][0] : "");
+    return s.toUpperCase() || "?";
+  }
 
-  /* ---------------- Sidebar ---------------- */
-  function renderRail(){
-    var staffHtml = SEED_USERS.filter(function(u){ return u.role !== "estudiante"; }).map(identityBtn).join("");
-    var studentHtml = SEED_USERS.filter(function(u){ return u.selectable; }).map(identityBtn).join("");
-    document.getElementById("staff-list").innerHTML = staffHtml;
-    document.getElementById("student-list").innerHTML = studentHtml;
+  /* ================= Auth screen ================= */
+  function renderAuthScreen(){
+    document.getElementById("auth-tab-login").setAttribute("aria-selected", authTab === "login");
+    document.getElementById("auth-tab-register").setAttribute("aria-selected", authTab === "register");
+    var body = document.getElementById("auth-body");
+    body.innerHTML = authTab === "login" ? loginFormHtml() : registerFormHtml();
 
-    document.querySelectorAll(".identity").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        state.currentUserId = btn.getAttribute("data-id");
-        state.activeTab = (byId(state.currentUserId).role === "estudiante") ? "bandeja" : "nueva";
-        saveState();
-        renderAll();
-      });
+    var errBox = "";
+    if (authError) errBox = '<div class="auth-error">' + escapeHtml(authError) + '</div>';
+    body.insertAdjacentHTML("afterbegin", errBox);
+
+    if (authTab === "login") wireLoginForm();
+    else wireRegisterForm();
+  }
+
+  function loginFormHtml(){
+    return '<form id="login-form" class="stack">' +
+      '<div class="field"><label for="li-usuario">Usuario</label>' +
+      '<input type="text" id="li-usuario" autocomplete="username" value="' + escapeHtml(authDraft.usuario || "") + '" required></div>' +
+      '<div class="field"><label for="li-password">Contraseña</label>' +
+      '<input type="password" id="li-password" autocomplete="current-password" required></div>' +
+      '<button type="submit" class="btn btn-primary">Ingresar</button>' +
+      '</form>' +
+      '<p class="auth-hint">Cuentas de ejemplo: <b>secretaria</b>, <b>docente</b>, <b>direccion</b>, <b>seguridad</b>, <b>julian</b> o <b>bianca</b> — contraseña <b>' + DEMO_PASSWORD + '</b> para todas.</p>' +
+      '<button type="button" class="auth-reset-link" id="auth-reset-link">↺ Reiniciar datos de la demo</button>';
+  }
+
+  function registerFormHtml(){
+    var d = authDraft;
+    var rolActual = d.rol || "estudiante";
+    var cohorteOptions = Object.keys(COHORTES).map(function(k){
+      return '<option value="' + k + '"' + (d.cohorte === k ? " selected" : "") + '>' + COHORTES[k] + '</option>';
+    }).join("");
+    var rolOptions = [
+      ["estudiante","Estudiante"], ["secretaria","Secretaría"], ["docente","Docente"],
+      ["direccion","Dirección"], ["seguridad","Seguridad y control"]
+    ].map(function(r){ return '<option value="' + r[0] + '"' + (rolActual === r[0] ? " selected" : "") + '>' + r[1] + '</option>'; }).join("");
+
+    return '<form id="register-form" class="stack">' +
+      '<div class="field"><label for="re-nombre">Nombre y apellido</label>' +
+      '<input type="text" id="re-nombre" autocomplete="name" value="' + escapeHtml(d.nombre || "") + '" required></div>' +
+      '<div class="auth-row-2">' +
+      '<div class="field"><label for="re-usuario">Usuario</label>' +
+      '<input type="text" id="re-usuario" autocomplete="username" value="' + escapeHtml(d.usuario || "") + '" required></div>' +
+      '<div class="field"><label for="re-password">Contraseña</label>' +
+      '<input type="password" id="re-password" autocomplete="new-password" minlength="6" required></div>' +
+      '</div>' +
+      '<div class="field"><label for="re-rol">Rol</label>' +
+      '<select id="re-rol">' + rolOptions + '</select></div>' +
+      '<div class="field" id="re-cohorte-wrap"><label for="re-cohorte">Carrera / comisión</label>' +
+      '<select id="re-cohorte">' + cohorteOptions + '</select></div>' +
+      '<div class="field" id="re-detalle-wrap" hidden><label for="re-detalle">Materia o comisión a cargo (opcional)</label>' +
+      '<input type="text" id="re-detalle" placeholder="Ej: Programación II" value="' + escapeHtml(d.detalle || "") + '"></div>' +
+      '<button type="submit" class="btn btn-primary">Crear cuenta</button>' +
+      '</form>';
+  }
+
+  function wireLoginForm(){
+    var form = document.getElementById("login-form");
+    form.addEventListener("submit", async function(ev){
+      ev.preventDefault();
+      var usuario = document.getElementById("li-usuario").value.trim().toLowerCase();
+      var password = document.getElementById("li-password").value;
+      authDraft = { usuario: usuario };
+      var acc = accounts.filter(function(a){ return a.usuario === usuario; })[0];
+      if (!acc){ authError = "No existe ninguna cuenta con ese usuario."; renderAuthScreen(); return; }
+      var hash = await sha256Hex(password);
+      if (hash !== acc.passwordHash){ authError = "La contraseña no es correcta."; renderAuthScreen(); return; }
+      authError = "";
+      authDraft = {};
+      session = { accountId: acc.id };
+      persistSession();
+      renderAll();
+      toast("Hola, " + acc.nombre.split(" ")[0]);
+    });
+    document.getElementById("auth-reset-link").addEventListener("click", resetDemo);
+  }
+
+  function wireRegisterForm(){
+    var rolSelect = document.getElementById("re-rol");
+    function syncConditional(){
+      var rol = rolSelect.value;
+      document.getElementById("re-cohorte-wrap").hidden = rol !== "estudiante";
+      document.getElementById("re-detalle-wrap").hidden = rol !== "docente";
+    }
+    rolSelect.addEventListener("change", syncConditional);
+    syncConditional();
+
+    var form = document.getElementById("register-form");
+    form.addEventListener("submit", async function(ev){
+      ev.preventDefault();
+      var nombre = document.getElementById("re-nombre").value.trim();
+      var usuario = document.getElementById("re-usuario").value.trim().toLowerCase();
+      var password = document.getElementById("re-password").value;
+      var rol = rolSelect.value;
+      var cohorteField = document.getElementById("re-cohorte").value;
+      var detalleField = document.getElementById("re-detalle").value.trim();
+      authDraft = { nombre:nombre, usuario:usuario, rol:rol, cohorte:cohorteField, detalle:detalleField };
+
+      if (!nombre || !usuario){ authError = "Completá tu nombre y un usuario."; renderAuthScreen(); return; }
+      if (!/^[a-z0-9._-]{3,24}$/.test(usuario)){ authError = "El usuario debe tener entre 3 y 24 caracteres: letras, números, punto o guión."; renderAuthScreen(); return; }
+      if (password.length < 6){ authError = "La contraseña necesita al menos 6 caracteres."; renderAuthScreen(); return; }
+      if (accounts.some(function(a){ return a.usuario === usuario; })){ authError = "Ese usuario ya existe — probá con otro."; renderAuthScreen(); return; }
+
+      var roleLabel = ROLE_LABELS[rol];
+      var cohorte;
+      if (rol === "estudiante"){
+        cohorte = cohorteField;
+      } else if (rol === "docente" && detalleField){
+        roleLabel = "Docente · " + detalleField;
+      }
+
+      var hash = await sha256Hex(password);
+      var acc = {
+        id: "acc-" + Date.now(),
+        nombre: nombre, usuario: usuario, rol: rol, roleLabel: roleLabel,
+        initials: initialsFrom(nombre), passwordHash: hash
+      };
+      if (cohorte) acc.cohorte = cohorte;
+
+      accounts.push(acc);
+      persistAccounts(accounts);
+      authError = "";
+      authDraft = {};
+      session = { accountId: acc.id };
+      persistSession();
+      renderAll();
+      toast("Cuenta creada — bienvenido/a, " + nombre.split(" ")[0]);
     });
   }
-  function identityBtn(u){
-    var pressed = u.id === state.currentUserId;
-    return '<button type="button" class="identity" data-id="' + u.id + '" aria-pressed="' + pressed + '">' +
-      '<span class="avatar">' + u.initials + '</span>' +
-      '<span class="who"><span class="name">' + escapeHtml(u.name) + '</span>' +
-      '<span class="role">' + escapeHtml(u.roleLabel || (COHORTES[u.cohorte]||"")) + '</span></span>' +
-      '</button>';
+
+  /* ================= Shell (rail + main) ================= */
+  function renderSessionPanel(user){
+    document.getElementById("session-panel").innerHTML =
+      '<div class="session-card">' +
+      '<span class="avatar">' + user.initials + '</span>' +
+      '<div class="who"><div class="name">' + escapeHtml(user.nombre) + '</div>' +
+      '<div class="role">' + escapeHtml(user.roleLabel) + '</div></div>' +
+      '</div>';
   }
 
   /* ---------------- Main: staff (emisor) view ---------------- */
+  var activeTab = "nueva";
+
   function renderStaffMain(user){
-    var isDireccion = user.role === "direccion";
+    var isDireccion = user.rol === "direccion";
     var tabs = [
       ["nueva", "Nueva notificación"],
       ["enviadas", "Enviadas por mí"]
     ];
     if (isDireccion) tabs.push(["historial", "Historial institucional"]);
+    if (["nueva","enviadas","historial"].indexOf(activeTab) === -1 || (activeTab === "historial" && !isDireccion)) activeTab = "nueva";
 
     var tabsHtml = tabs.map(function(t){
-      var sel = state.activeTab === t[0];
+      var sel = activeTab === t[0];
       return '<button class="tab" role="tab" aria-selected="' + sel + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join("");
 
-    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.name.split(" ")[0]) + '</h2>' +
+    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
       '<div class="sub">' + escapeHtml(user.roleLabel) + ' — emitís avisos para los estudiantes</div></div></div>' +
       '<div class="tabs" role="tablist">' + tabsHtml + '</div>' +
       '<div id="tab-body"></div>';
@@ -502,24 +719,23 @@
 
     document.querySelectorAll(".tab").forEach(function(btn){
       btn.addEventListener("click", function(){
-        state.activeTab = btn.getAttribute("data-tab");
-        saveState();
-        renderAll();
+        activeTab = btn.getAttribute("data-tab");
+        renderStaffMain(user);
       });
     });
 
     var body = document.getElementById("tab-body");
-    if (state.activeTab === "nueva") body.innerHTML = composeFormHtml();
-    else if (state.activeTab === "enviadas") body.innerHTML = sentListHtml(user.id, false);
+    if (activeTab === "nueva") body.innerHTML = composeFormHtml();
+    else if (activeTab === "enviadas") body.innerHTML = sentListHtml(user.id, false);
     else body.innerHTML = sentListHtml(null, true);
 
-    if (state.activeTab === "nueva") wireComposeForm();
+    if (activeTab === "nueva") wireComposeForm(user);
   }
 
   function composeFormHtml(){
     var cohorteOptions = Object.keys(COHORTES).map(function(k){ return '<option value="' + k + '">' + COHORTES[k] + '</option>'; }).join("");
-    var studentOptions = SEED_USERS.filter(function(u){ return u.role === "estudiante"; })
-      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.name) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
+    var studentOptions = allStudents(accounts)
+      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
 
     return '<form class="card stack" id="compose-form">' +
       '<div class="field"><label for="f-titulo">Título</label>' +
@@ -535,7 +751,7 @@
       '<label class="priority-opt urgente"><input type="radio" name="f-prioridad" value="urgente">Urgente</label>' +
       '</div></div>' +
 
-      '<div class="field"><label>Destinatarios</label>' +
+      '<div class="field"><label>Destinatarios — elegí una opción</label>' +
       '<div class="radio-row">' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="institucion" checked>Toda la institución</label>' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="cohorte">Una carrera / comisión' +
@@ -544,11 +760,11 @@
       '<select class="extra" id="f-estudiante">' + studentOptions + '</select></label>' +
       '</div></div>' +
 
-      '<div><button type="submit" class="btn btn-primary">Enviar notificación</button></div>' +
+      '<div><button type="submit" class="btn btn-primary" style="width:auto;">Enviar notificación</button></div>' +
       '</form>';
   }
 
-  function wireComposeForm(){
+  function wireComposeForm(user){
     var form = document.getElementById("compose-form");
     form.addEventListener("submit", function(ev){
       ev.preventDefault();
@@ -563,22 +779,22 @@
 
       var n = {
         id: "n" + Date.now(),
-        emisorId: state.currentUserId,
+        emisorId: user.id,
         titulo: titulo, mensaje: mensaje, prioridad: prioridad,
         destTipo: destTipo, destValor: destValor,
         fecha: new Date().toISOString()
       };
-      n.destinatarios = studentsIn(destTipo, destValor);
-      state.notifications.unshift(n);
-      state.activeTab = "enviadas";
-      saveState();
-      renderAll();
+      n.destinatarios = studentsIn(accounts, destTipo, destValor);
+      notifState.notifications.unshift(n);
+      persistNotifState();
+      activeTab = "enviadas";
+      renderStaffMain(user);
       toast("Notificación enviada a " + n.destinatarios.length + " estudiante" + (n.destinatarios.length===1?"":"s"));
     });
   }
 
   function sentListHtml(emisorId, isAudit){
-    var list = state.notifications.filter(function(n){ return isAudit || n.emisorId === emisorId; });
+    var list = notifState.notifications.filter(function(n){ return isAudit || n.emisorId === emisorId; });
     if (!list.length){
       return '<div class="card empty"><h3>Todavía no enviaste nada</h3><p>Cuando envíes una notificación, vas a poder ver acá cuántos estudiantes la confirmaron.</p></div>';
     }
@@ -619,15 +835,15 @@
 
   /* ---------------- Main: student view ---------------- */
   function renderStudentMain(user){
-    var mine = state.notifications.filter(function(n){ return n.destinatarios.indexOf(user.id) !== -1; });
+    var mine = notifState.notifications.filter(function(n){ return n.destinatarios.indexOf(user.id) !== -1; });
     mine.sort(function(a,b){
       var aUn = !isConfirmedBy(a.id, user.id), bUn = !isConfirmedBy(b.id, user.id);
       if (aUn !== bUn) return aUn ? -1 : 1;
       return new Date(b.fecha) - new Date(a.fecha);
     });
 
-    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.name.split(" ")[0]) + '</h2>' +
-      '<div class="sub">' + COHORTES[user.cohorte] + '</div></div></div>' +
+    var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
+      '<div class="sub">' + (COHORTES[user.cohorte] || "") + '</div></div></div>' +
       '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, docentes, dirección y seguridad. Solo podés confirmar que los leíste con «OK» — no se pueden responder ni reenviar.</span></div>';
 
     if (!mine.length){
@@ -640,9 +856,9 @@
     document.querySelectorAll(".ok-btn").forEach(function(btn){
       btn.addEventListener("click", function(){
         var nid = btn.getAttribute("data-nid");
-        state.confirmations.push({ notifId: nid, estudianteId: user.id, fecha: new Date().toISOString() });
-        saveState();
-        renderAll();
+        notifState.confirmations.push({ notifId: nid, estudianteId: user.id, fecha: new Date().toISOString() });
+        persistNotifState();
+        renderStudentMain(user);
         toast("Confirmado");
       });
     });
@@ -654,7 +870,7 @@
     var when = confirmedAt(n.id, studentId);
     return '<div class="feed-card' + (n.prioridad === "urgente" ? " urgente" : "") + '">' +
       '<div class="sender-row"><span class="sender-avatar">' + emisor.initials + '</span>' +
-      '<div><div class="sender-name">' + escapeHtml(emisor.name) + '</div>' +
+      '<div><div class="sender-name">' + escapeHtml(emisor.nombre) + '</div>' +
       '<div class="sender-role">' + escapeHtml(emisor.roleLabel) + '</div></div>' +
       '<span style="margin-left:auto;">' + priorityBadge(n.prioridad) + '</span></div>' +
       '<h3>' + escapeHtml(n.titulo) + '</h3>' +
@@ -667,24 +883,55 @@
   }
 
   /* ---------------- Orchestration ---------------- */
-  function renderAll(){
-    renderRail();
+  function renderShell(){
     var user = currentUser();
-    if (!user){ state.currentUserId = "staff-secretaria"; user = currentUser(); }
-    if (user.role === "estudiante") renderStudentMain(user);
+    if (!user){ session = null; persistSession(); renderAll(); return; }
+    renderSessionPanel(user);
+    if (user.rol === "estudiante") renderStudentMain(user);
     else renderStaffMain(user);
   }
 
-  document.getElementById("reset-demo").addEventListener("click", function(){
-    state = seedState();
-    saveState();
+  function renderAll(){
+    var authScreen = document.getElementById("auth-screen");
+    var shell = document.getElementById("shell");
+    if (!session){
+      shell.hidden = true;
+      authScreen.hidden = false;
+      renderAuthScreen();
+    } else {
+      authScreen.hidden = true;
+      shell.hidden = false;
+      renderShell();
+    }
+  }
+
+  function resetDemo(){
+    try{
+      localStorage.removeItem(ACCOUNTS_KEY);
+      localStorage.removeItem(STATE_KEY);
+      localStorage.removeItem(SESSION_KEY);
+    }catch(e){ /* ignore */ }
+    location.reload();
+  }
+
+  document.getElementById("auth-tab-login").addEventListener("click", function(){ authTab = "login"; authError = ""; authDraft = {}; renderAuthScreen(); });
+  document.getElementById("auth-tab-register").addEventListener("click", function(){ authTab = "register"; authError = ""; authDraft = {}; renderAuthScreen(); });
+  document.getElementById("logout-btn").addEventListener("click", function(){
+    session = null;
+    persistSession();
+    authTab = "login";
     renderAll();
-    toast("Demo reiniciada");
   });
+  document.getElementById("reset-demo").addEventListener("click", resetDemo);
 
-  renderAll();
+  (async function boot(){
+    accounts = await ensureAccounts();
+    notifState = loadNotifState(accounts);
+    session = loadSession();
+    renderAll();
+  })();
 
-  // --- Instalación como PWA ---
+  // --- Instalación como PWA (si el navegador la soporta en este origen) ---
   var deferredPrompt = null;
   var installBtn = document.getElementById("install-btn");
   window.addEventListener("beforeinstallprompt", function(ev){
