@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tablón — avisos institucionales</title>
+<title>Alerta de Clase</title>
 <meta name="description" content="Notificaciones institucionales: el personal emite avisos y los estudiantes los confirman con OK.">
 
 <link rel="manifest" href="./manifest.json">
@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tablón">
+<meta name="apple-mobile-web-app-title" content="Alerta de Clase">
 <meta name="mobile-web-app-capable" content="yes">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -328,7 +328,7 @@
 
 <div id="auth-screen" class="auth-wrap">
   <div class="auth-card">
-    <div class="auth-brand"><span class="mark" aria-hidden="true">T</span><h1>Tablón</h1></div>
+    <div class="auth-brand"><span class="mark" aria-hidden="true">A</span><h1>Alerta de Clase</h1></div>
     <p class="auth-sub">avisos institucionales</p>
     <div class="auth-tabs" role="tablist">
       <button type="button" class="auth-tab" id="auth-tab-login" role="tab">Iniciar sesión</button>
@@ -341,9 +341,9 @@
 <div class="shell" id="shell" hidden>
   <nav class="rail" aria-label="Cuenta">
     <div class="brand">
-      <span class="mark" aria-hidden="true">T</span>
+      <span class="mark" aria-hidden="true">A</span>
       <div>
-        <h1>Tablón</h1>
+        <h1>Alerta de Clase</h1>
         <div class="tagline">avisos institucionales</div>
       </div>
     </div>
@@ -366,8 +366,8 @@
 (function(){
   "use strict";
 
-  var COHORTES = { "1A": "1er año · Comisión A", "2B": "2do año · Comisión B", "3C": "3er año · Comisión C" };
-  var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Dirección", seguridad:"Seguridad y control", estudiante:"Estudiante" };
+  var COHORTES = { "1A": "1° A", "2B": "2° B", "3C": "3° C" };
+  var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Dirección", seguridad:"Administrador", estudiante:"Estudiante" };
   var DEMO_PASSWORD = "demo1234";
 
   // Cuentas de ejemplo precargadas (login: usuario / demo1234).
@@ -375,15 +375,15 @@
     { id:"staff-secretaria", nombre:"Secretaría Académica", usuario:"secretaria", rol:"secretaria", roleLabel:"Secretaría", initials:"SA" },
     { id:"staff-docente",    nombre:"Prof. Marina Ibarra",  usuario:"docente",    rol:"docente",    roleLabel:"Docente · Programación II", initials:"MI", cohorte:"2B" },
     { id:"staff-direccion",  nombre:"Dirección de Carrera", usuario:"direccion",  rol:"direccion",  roleLabel:"Dirección", initials:"DC" },
-    { id:"staff-seguridad",  nombre:"Seguridad y Control",  usuario:"seguridad",  rol:"seguridad",  roleLabel:"Seguridad y control", initials:"SC" },
-    { id:"est-1", nombre:"Julián Rossi", usuario:"julian", rol:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B" },
-    { id:"est-2", nombre:"Bianca Sosa",  usuario:"bianca", rol:"estudiante", roleLabel:"Estudiante", initials:"BS", cohorte:"1A" }
+    { id:"staff-administrador", nombre:"Administración del Instituto", usuario:"administrador", rol:"seguridad", roleLabel:"Administrador", initials:"AD" },
+    { id:"est-1", nombre:"Julián Rossi", usuario:"julian", rol:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B" }
   ];
 
   // Resto del padrón de estudiantes: ya existen en la institución pero todavía no se crearon una cuenta.
-  // Cuentan para el destinatario "toda la institución" / "carrera-comisión" y para las estadísticas de confirmación,
+  // Cuentan para el destinatario "toda la institución" / "curso" y para las estadísticas de confirmación,
   // no para iniciar sesión.
   var ROSTER_STUDENTS = [
+    { id:"est-2", nombre:"Bianca Sosa",   rol:"estudiante", initials:"BS", cohorte:"1A" },
     { id:"est-3", nombre:"Nicolás Vera",  rol:"estudiante", initials:"NV", cohorte:"2B" },
     { id:"est-4", nombre:"Camila Duarte", rol:"estudiante", initials:"CD", cohorte:"2B" },
     { id:"est-5", nombre:"Federico Paz",  rol:"estudiante", initials:"FP", cohorte:"1A" },
@@ -418,7 +418,7 @@
     var n1 = { id:"n1", emisorId:"staff-direccion", titulo:"Corte de suministro eléctrico el viernes",
       mensaje:"El viernes 21/8 de 9 a 13hs habrá corte de luz programado en todo el edificio por trabajos de mantenimiento. No habrá clases presenciales en ese horario.",
       prioridad:"normal", destTipo:"institucion", destValor:null, fecha:hoursAgo(50) };
-    var n2 = { id:"n2", emisorId:"staff-seguridad", titulo:"Simulacro de evacuación — jueves 10hs",
+    var n2 = { id:"n2", emisorId:"staff-administrador", titulo:"Simulacro de evacuación — jueves 10hs",
       mensaje:"El jueves a las 10hs se realizará un simulacro de evacuación obligatorio. Al sonar la alarma, dirigirse con calma a la puerta más cercana y esperar indicaciones del personal de seguridad en el punto de encuentro del patio.",
       prioridad:"urgente", destTipo:"institucion", destValor:null, fecha:hoursAgo(26) };
     var n3 = { id:"n3", emisorId:"staff-secretaria", titulo:"Vence la entrega de la libreta universitaria",
@@ -502,6 +502,9 @@
   var authTab = "login";
   var authError = "";
   var authDraft = {};
+  var recoverStep = "find";
+  var recoverMatches = [];
+  var recoverMatch = null;
 
   function byId(id){
     var acc = accounts.filter(function(u){ return u.id === id; })[0];
@@ -558,14 +561,17 @@
     document.getElementById("auth-tab-login").setAttribute("aria-selected", authTab === "login");
     document.getElementById("auth-tab-register").setAttribute("aria-selected", authTab === "register");
     var body = document.getElementById("auth-body");
-    body.innerHTML = authTab === "login" ? loginFormHtml() : registerFormHtml();
+    if (authTab === "login") body.innerHTML = loginFormHtml();
+    else if (authTab === "register") body.innerHTML = registerFormHtml();
+    else body.innerHTML = recoverFormHtml();
 
     var errBox = "";
     if (authError) errBox = '<div class="auth-error">' + escapeHtml(authError) + '</div>';
     body.insertAdjacentHTML("afterbegin", errBox);
 
     if (authTab === "login") wireLoginForm();
-    else wireRegisterForm();
+    else if (authTab === "register") wireRegisterForm();
+    else wireRecoverForm();
   }
 
   function loginFormHtml(){
@@ -576,8 +582,45 @@
       '<input type="password" id="li-password" autocomplete="current-password" required></div>' +
       '<button type="submit" class="btn btn-primary">Ingresar</button>' +
       '</form>' +
-      '<p class="auth-hint">Cuentas de ejemplo: <b>secretaria</b>, <b>docente</b>, <b>direccion</b>, <b>seguridad</b>, <b>julian</b> o <b>bianca</b> — contraseña <b>' + DEMO_PASSWORD + '</b> para todas.</p>' +
+      '<button type="button" class="auth-reset-link" id="goto-recover">¿Olvidaste tu usuario o tu contraseña?</button>' +
       '<button type="button" class="auth-reset-link" id="auth-reset-link">↺ Reiniciar datos de la demo</button>';
+  }
+
+  function recoverFormHtml(){
+    var back = '<button type="button" class="auth-reset-link" id="recover-back" style="margin:0 0 16px;">‹ Volver a iniciar sesión</button>';
+
+    if (recoverStep === "choose"){
+      var items = recoverMatches.map(function(a){
+        return '<button type="button" class="radio-opt recover-candidate" data-id="' + a.id + '" style="width:100%; text-align:left; cursor:pointer; background:none;">' +
+          '<span><b>' + escapeHtml(a.nombre) + '</b><br><span style="color:var(--ink-500); font-size:12px;">usuario <span class="mono">' + escapeHtml(a.usuario) + '</span> · ' + escapeHtml(a.roleLabel) + '</span></span></button>';
+      }).join("");
+      return back + '<p class="field" style="margin-bottom:10px;"><label>Encontramos más de una cuenta — elegí la tuya</label></p>' +
+        '<div class="stack">' + items + '</div>';
+    }
+
+    if (recoverStep === "reset" && recoverMatch){
+      var acc = recoverMatch;
+      return back +
+        '<div class="card" style="margin-bottom:18px; padding:14px 16px;">' +
+        '<div style="font-size:13px;">Tu usuario es <b class="mono">' + escapeHtml(acc.usuario) + '</b></div>' +
+        '<div style="font-size:12px; color:var(--ink-500); margin-top:2px;">' + escapeHtml(acc.nombre) + ' · ' + escapeHtml(acc.roleLabel) + '</div>' +
+        '</div>' +
+        '<form id="recover-reset-form" class="stack">' +
+        '<div class="field"><label for="rc-password">Contraseña nueva</label>' +
+        '<input type="password" id="rc-password" minlength="6" autocomplete="new-password" required></div>' +
+        '<div class="field"><label for="rc-password2">Repetir contraseña nueva</label>' +
+        '<input type="password" id="rc-password2" minlength="6" autocomplete="new-password" required></div>' +
+        '<button type="submit" class="btn btn-primary">Guardar contraseña e ingresar</button>' +
+        '</form>';
+    }
+
+    return back +
+      '<form id="recover-find-form" class="stack">' +
+      '<div class="field"><label for="rc-query">Usuario o nombre completo</label>' +
+      '<input type="text" id="rc-query" placeholder="Ej: julian o Julián Rossi" required></div>' +
+      '<button type="submit" class="btn btn-primary">Buscar mi cuenta</button>' +
+      '</form>' +
+      '<p class="auth-hint">Te mostramos tu usuario y te dejamos elegir una contraseña nueva. Como esta demo todavía no tiene un servidor de mail que verifique tu identidad, alcanza con tu nombre — en una versión real esto se haría con un mail o SMS de verificación.</p>';
   }
 
   function registerFormHtml(){
@@ -588,7 +631,7 @@
     }).join("");
     var rolOptions = [
       ["estudiante","Estudiante"], ["secretaria","Secretaría"], ["docente","Docente"],
-      ["direccion","Dirección"], ["seguridad","Seguridad y control"]
+      ["direccion","Dirección"], ["seguridad","Administrador"]
     ].map(function(r){ return '<option value="' + r[0] + '"' + (rolActual === r[0] ? " selected" : "") + '>' + r[1] + '</option>'; }).join("");
 
     return '<form id="register-form" class="stack">' +
@@ -602,9 +645,9 @@
       '</div>' +
       '<div class="field"><label for="re-rol">Rol</label>' +
       '<select id="re-rol">' + rolOptions + '</select></div>' +
-      '<div class="field" id="re-cohorte-wrap"><label for="re-cohorte">Carrera / comisión</label>' +
+      '<div class="field" id="re-cohorte-wrap"><label for="re-cohorte">Curso</label>' +
       '<select id="re-cohorte">' + cohorteOptions + '</select></div>' +
-      '<div class="field" id="re-detalle-wrap" hidden><label for="re-detalle">Materia o comisión a cargo (opcional)</label>' +
+      '<div class="field" id="re-detalle-wrap" hidden><label for="re-detalle">Materia a cargo (opcional)</label>' +
       '<input type="text" id="re-detalle" placeholder="Ej: Programación II" value="' + escapeHtml(d.detalle || "") + '"></div>' +
       '<button type="submit" class="btn btn-primary">Crear cuenta</button>' +
       '</form>';
@@ -629,6 +672,59 @@
       toast("Hola, " + acc.nombre.split(" ")[0]);
     });
     document.getElementById("auth-reset-link").addEventListener("click", resetDemo);
+    document.getElementById("goto-recover").addEventListener("click", function(){
+      authTab = "recover"; authError = ""; recoverStep = "find"; recoverMatches = []; recoverMatch = null;
+      renderAuthScreen();
+    });
+  }
+
+  function wireRecoverForm(){
+    document.getElementById("recover-back").addEventListener("click", function(){
+      authTab = "login"; authError = ""; recoverStep = "find"; recoverMatches = []; recoverMatch = null;
+      renderAuthScreen();
+    });
+
+    if (recoverStep === "find"){
+      document.getElementById("recover-find-form").addEventListener("submit", function(ev){
+        ev.preventDefault();
+        var q = document.getElementById("rc-query").value.trim().toLowerCase();
+        if (!q){ authError = "Escribí tu usuario o tu nombre completo."; renderAuthScreen(); return; }
+        var porUsuario = accounts.filter(function(a){ return a.usuario === q; });
+        var matches = porUsuario.length ? porUsuario : accounts.filter(function(a){ return a.nombre.toLowerCase().indexOf(q) !== -1; });
+        if (!matches.length){ authError = "No encontramos ninguna cuenta con ese usuario o nombre."; renderAuthScreen(); return; }
+        authError = "";
+        if (matches.length === 1){ recoverMatch = matches[0]; recoverStep = "reset"; }
+        else { recoverMatches = matches; recoverStep = "choose"; }
+        renderAuthScreen();
+      });
+    } else if (recoverStep === "choose"){
+      document.querySelectorAll(".recover-candidate").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var id = btn.getAttribute("data-id");
+          recoverMatch = recoverMatches.filter(function(a){ return a.id === id; })[0];
+          recoverStep = "reset";
+          renderAuthScreen();
+        });
+      });
+    } else if (recoverStep === "reset"){
+      document.getElementById("recover-reset-form").addEventListener("submit", async function(ev){
+        ev.preventDefault();
+        var p1 = document.getElementById("rc-password").value;
+        var p2 = document.getElementById("rc-password2").value;
+        if (p1.length < 6){ authError = "La contraseña necesita al menos 6 caracteres."; renderAuthScreen(); return; }
+        if (p1 !== p2){ authError = "Las dos contraseñas no coinciden."; renderAuthScreen(); return; }
+        var acc = accounts.filter(function(a){ return a.id === recoverMatch.id; })[0];
+        acc.passwordHash = await sha256Hex(p1);
+        persistAccounts(accounts);
+        authError = "";
+        var nombre = acc.nombre;
+        recoverStep = "find"; recoverMatches = []; recoverMatch = null;
+        session = { accountId: acc.id };
+        persistSession();
+        renderAll();
+        toast("Contraseña actualizada — hola de nuevo, " + nombre.split(" ")[0]);
+      });
+    }
   }
 
   function wireRegisterForm(){
@@ -754,7 +850,7 @@
       '<div class="field"><label>Destinatarios — elegí una opción</label>' +
       '<div class="radio-row">' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="institucion" checked>Toda la institución</label>' +
-      '<label class="radio-opt"><input type="radio" name="f-dest" value="cohorte">Una carrera / comisión' +
+      '<label class="radio-opt"><input type="radio" name="f-dest" value="cohorte">Un curso' +
       '<select class="extra" id="f-cohorte">' + cohorteOptions + '</select></label>' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="individual">Un estudiante' +
       '<select class="extra" id="f-estudiante">' + studentOptions + '</select></label>' +
@@ -844,7 +940,7 @@
 
     var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
       '<div class="sub">' + (COHORTES[user.cohorte] || "") + '</div></div></div>' +
-      '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, docentes, dirección y seguridad. Solo podés confirmar que los leíste con «OK» — no se pueden responder ni reenviar.</span></div>';
+      '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, docentes, dirección y el administrador. Solo podés confirmar que los leíste con «OK» — no se pueden responder ni reenviar.</span></div>';
 
     if (!mine.length){
       html += '<div class="card empty"><h3>No tenés avisos por ahora</h3><p>Cuando alguien te envíe una notificación, va a aparecer acá.</p></div>';
@@ -914,8 +1010,8 @@
     location.reload();
   }
 
-  document.getElementById("auth-tab-login").addEventListener("click", function(){ authTab = "login"; authError = ""; authDraft = {}; renderAuthScreen(); });
-  document.getElementById("auth-tab-register").addEventListener("click", function(){ authTab = "register"; authError = ""; authDraft = {}; renderAuthScreen(); });
+  document.getElementById("auth-tab-login").addEventListener("click", function(){ authTab = "login"; authError = ""; authDraft = {}; recoverStep = "find"; recoverMatches = []; recoverMatch = null; renderAuthScreen(); });
+  document.getElementById("auth-tab-register").addEventListener("click", function(){ authTab = "register"; authError = ""; authDraft = {}; recoverStep = "find"; recoverMatches = []; recoverMatch = null; renderAuthScreen(); });
   document.getElementById("logout-btn").addEventListener("click", function(){
     session = null;
     persistSession();
@@ -947,7 +1043,7 @@
   });
   window.addEventListener("appinstalled", function(){
     installBtn.hidden = true;
-    toast("Tablón instalado");
+    toast("Alerta de Clase instalada");
   });
 
   if ("serviceWorker" in navigator) {

@@ -1,7 +1,7 @@
 {
-  "name": "Tablón — Notificaciones institucionales",
-  "short_name": "Tablón",
-  "description": "El personal (secretaría, docentes, dirección, seguridad y control) emite avisos importantes; los estudiantes los reciben y confirman con OK.",
+  "name": "Alerta de Clase — Notificaciones institucionales",
+  "short_name": "Alerta de Clase",
+  "description": "El personal (secretaría, docentes, dirección, administrador) emite avisos importantes; los estudiantes los reciben y confirman con OK.",
   "id": "/",
   "start_url": "./index.html",
   "scope": "./",
