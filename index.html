@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 </head>
 <body>
+<title>Alerta de Clase</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -442,7 +443,12 @@
       });
     });
 
-    return { notifications:[n4,n3,n2,n1], confirmations:confirmations };
+    var r1 = { id:"r1", docenteId:"staff-docente", estudianteId:"est-1",
+      titulo:"Ausencias reiteradas en las últimas dos semanas",
+      mensaje:"Julián faltó a 4 de las últimas 6 clases de Programación II sin aviso. Sería bueno contactar a la familia y revisar la situación antes del parcial.",
+      prioridad:"normal", rolesDestino:["secretaria","direccion"], fecha:hoursAgo(30) };
+
+    return { notifications:[n4,n3,n2,n1], confirmations:confirmations, reportes:[r1] };
   }
 
   var ACCOUNTS_KEY = "tablon_accounts_v1";
@@ -477,7 +483,10 @@
       var raw = localStorage.getItem(STATE_KEY);
       if (raw){
         var parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.notifications)) return parsed;
+        if (parsed && Array.isArray(parsed.notifications)){
+          if (!Array.isArray(parsed.reportes)) parsed.reportes = [];
+          return parsed;
+        }
       }
     }catch(e){ /* fall through to reseed */ }
     return seedNotifications(accounts);
@@ -497,7 +506,7 @@
   }
 
   var accounts = [];
-  var notifState = { notifications:[], confirmations:[] };
+  var notifState = { notifications:[], confirmations:[], reportes:[] };
   var session = null;
   var authTab = "login";
   var authError = "";
@@ -795,20 +804,30 @@
 
   function renderStaffMain(user){
     var isDireccion = user.rol === "direccion";
+    var isDocente = user.rol === "docente";
+    var recibeReportes = user.rol === "secretaria" || user.rol === "direccion";
     var tabs = [
       ["nueva", "Nueva notificación"],
       ["enviadas", "Enviadas por mí"]
     ];
     if (isDireccion) tabs.push(["historial", "Historial institucional"]);
-    if (["nueva","enviadas","historial"].indexOf(activeTab) === -1 || (activeTab === "historial" && !isDireccion)) activeTab = "nueva";
+    if (isDocente) tabs.push(["reportar", "Reportar situación"]);
+    if (recibeReportes) tabs.push(["recibidos", "Avisos de docentes"]);
+
+    var validTabs = tabs.map(function(t){ return t[0]; });
+    if (validTabs.indexOf(activeTab) === -1) activeTab = "nueva";
 
     var tabsHtml = tabs.map(function(t){
       var sel = activeTab === t[0];
       return '<button class="tab" role="tab" aria-selected="' + sel + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join("");
 
+    var subLine = isDocente ? ' — emitís avisos para los estudiantes y podés reportar situaciones a secretaría/dirección'
+                : recibeReportes ? ' — emitís avisos para los estudiantes y recibís los reportes de los docentes'
+                : ' — emitís avisos para los estudiantes';
+
     var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
-      '<div class="sub">' + escapeHtml(user.roleLabel) + ' — emitís avisos para los estudiantes</div></div></div>' +
+      '<div class="sub">' + escapeHtml(user.roleLabel) + subLine + '</div></div></div>' +
       '<div class="tabs" role="tablist">' + tabsHtml + '</div>' +
       '<div id="tab-body"></div>';
     document.getElementById("main").innerHTML = html;
@@ -822,10 +841,13 @@
 
     var body = document.getElementById("tab-body");
     if (activeTab === "nueva") body.innerHTML = composeFormHtml();
-    else if (activeTab === "enviadas") body.innerHTML = sentListHtml(user.id, false);
-    else body.innerHTML = sentListHtml(null, true);
+    else if (activeTab === "enviadas") body.innerHTML = sentListHtml(user.id, false) + (isDocente ? reportesSentHtml(user.id) : "");
+    else if (activeTab === "historial") body.innerHTML = sentListHtml(null, true);
+    else if (activeTab === "reportar") body.innerHTML = reportFormHtml();
+    else if (activeTab === "recibidos") body.innerHTML = receivedReportsHtml(user.rol);
 
     if (activeTab === "nueva") wireComposeForm(user);
+    else if (activeTab === "reportar") wireReportForm(user);
   }
 
   function composeFormHtml(){
@@ -927,6 +949,101 @@
 
   function priorityBadge(p){
     return p === "urgente" ? '<span class="badge badge-urgente">● Urgente</span>' : '<span class="badge badge-normal">Normal</span>';
+  }
+
+  /* ---------------- Docente → Secretaría/Dirección: reportar situación ---------------- */
+  function reportFormHtml(){
+    var studentOptions = allStudents(accounts)
+      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
+
+    return '<form class="card stack" id="report-form">' +
+      '<div class="field"><label for="r-titulo">Título</label>' +
+      '<input type="text" id="r-titulo" maxlength="90" placeholder="Ej: Ausencias reiteradas en el último mes" required></div>' +
+
+      '<div class="field"><label for="r-estudiante">Estudiante</label>' +
+      '<select id="r-estudiante">' + studentOptions + '</select></div>' +
+
+      '<div class="field"><label for="r-mensaje">Mensaje</label>' +
+      '<textarea id="r-mensaje" maxlength="600" placeholder="Describí la situación del estudiante para secretaría y/o dirección." required></textarea>' +
+      '<span class="hint">Este reporte es un aviso interno entre personal: el estudiante no lo ve.</span></div>' +
+
+      '<div class="field"><label>Prioridad</label>' +
+      '<div class="priority-row">' +
+      '<label class="priority-opt"><input type="radio" name="r-prioridad" value="normal" checked>Normal</label>' +
+      '<label class="priority-opt urgente"><input type="radio" name="r-prioridad" value="urgente">Urgente</label>' +
+      '</div></div>' +
+
+      '<div class="field"><label>Enviar a — podés elegir una opción o las dos al mismo tiempo</label>' +
+      '<div class="radio-row">' +
+      '<label class="radio-opt"><input type="checkbox" name="r-rol" value="secretaria" checked>Secretaría</label>' +
+      '<label class="radio-opt"><input type="checkbox" name="r-rol" value="direccion" checked>Dirección</label>' +
+      '</div><span class="hint" id="r-rol-error" style="display:none; color:var(--danger, #b3432b);">Elegí al menos un destinatario.</span></div>' +
+
+      '<div><button type="submit" class="btn btn-primary" style="width:auto;">Enviar reporte</button></div>' +
+      '</form>';
+  }
+
+  function wireReportForm(user){
+    var form = document.getElementById("report-form");
+    form.addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var titulo = document.getElementById("r-titulo").value.trim();
+      var mensaje = document.getElementById("r-mensaje").value.trim();
+      var estudianteId = document.getElementById("r-estudiante").value;
+      var roles = Array.prototype.slice.call(form.querySelectorAll('input[name="r-rol"]:checked')).map(function(cb){ return cb.value; });
+      var errEl = document.getElementById("r-rol-error");
+      if (!roles.length){ if (errEl) errEl.style.display = "block"; return; }
+      if (errEl) errEl.style.display = "none";
+      if (!titulo || !mensaje || !estudianteId) return;
+      var prioridad = form.querySelector('input[name="r-prioridad"]:checked').value;
+
+      var r = {
+        id: "r" + Date.now(),
+        docenteId: user.id,
+        estudianteId: estudianteId,
+        titulo: titulo, mensaje: mensaje, prioridad: prioridad,
+        rolesDestino: roles,
+        fecha: new Date().toISOString()
+      };
+      notifState.reportes.unshift(r);
+      persistNotifState();
+      activeTab = "enviadas";
+      renderStaffMain(user);
+      toast("Reporte enviado a " + rolesDestinoLabel(roles));
+    });
+  }
+
+  function rolesDestinoLabel(roles){
+    return roles.map(function(r){ return ROLE_LABELS[r]; }).join(" y ");
+  }
+
+  function reportesSentHtml(docenteId){
+    var list = notifState.reportes.filter(function(r){ return r.docenteId === docenteId; });
+    if (!list.length) return "";
+    return '<h3 style="font-size:15px; font-weight:600; color:var(--ink-700); margin:22px 0 10px;">Reportes enviados a secretaría/dirección</h3>' +
+      '<div class="stack">' + list.map(reportCard).join("") + '</div>';
+  }
+
+  function receivedReportsHtml(rol){
+    var list = notifState.reportes.filter(function(r){ return r.rolesDestino.indexOf(rol) !== -1; });
+    list = list.slice().sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); });
+    if (!list.length){
+      return '<div class="card empty"><h3>Todavía no hay avisos de docentes</h3><p>Cuando un docente reporte una situación de un estudiante, va a aparecer acá.</p></div>';
+    }
+    return '<div class="stack">' + list.map(reportCard).join("") + '</div>';
+  }
+
+  function reportCard(r){
+    var docente = byId(r.docenteId);
+    var estudiante = byId(r.estudianteId);
+    return '<div class="noti-card">' +
+      '<div class="noti-head"><div>' +
+      '<div class="noti-title">' + escapeHtml(r.titulo) + '</div>' +
+      '<div class="noti-meta">' + (docente ? escapeHtml(docente.nombre) : "Docente") + ' · sobre ' + (estudiante ? escapeHtml(estudiante.nombre) : "un estudiante") +
+      ' · para ' + rolesDestinoLabel(r.rolesDestino) + ' · ' + fmtDateTime(r.fecha) + '</div>' +
+      '</div>' + priorityBadge(r.prioridad) + '</div>' +
+      '<div class="noti-msg">' + escapeHtml(r.mensaje) + '</div>' +
+      '</div>';
   }
 
   /* ---------------- Main: student view ---------------- */

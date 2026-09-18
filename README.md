@@ -11,6 +11,7 @@ El link que te pasé antes vive en el hosting de artefactos de Claude, dentro de
 Todo va junto en la misma raíz del sitio (sin subcarpetas), porque `manifest.json` y `service-worker.js` referencian los íconos con rutas relativas planas (`icon-192.png`, no `icons/icon-192.png`):
 
 - `index.html` — la app: pantalla de inicio de sesión / crear cuenta / recuperar cuenta, y luego las vistas de personal (secretaría, docentes, dirección, administrador) y de estudiante.
+  - Los docentes tienen además una pestaña **"Reportar situación"** para avisar a secretaría y/o dirección sobre la situación de un estudiante (podés marcar una de las dos casillas o las dos a la vez). Secretaría y Dirección ven esos reportes en su propia pestaña **"Avisos de docentes"**. Es un canal interno entre personal — el estudiante nunca ve estos reportes.
 - `manifest.json` — nombre, ícono y colores que usa el sistema operativo al instalarla.
 - `service-worker.js` — cachea el shell de la app para que abra sin conexión.
 - `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-64.png` — íconos en los tamaños que piden Android/iOS/escritorio.
