@@ -16,6 +16,13 @@ Todo va junto en la misma raíz del sitio (sin subcarpetas), porque `manifest.js
 - `service-worker.js` — cachea el shell de la app para que abra sin conexión.
 - `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-64.png` — íconos en los tamaños que piden Android/iOS/escritorio.
 
+## Cursos
+
+El prototipo modela dos carreras, cada una con sus cursos, agrupadas por separado en los selects (alta de cuenta y destinatario de una notificación):
+
+- **Analista de Sistemas**: 1°- Analista de Sistemas, 2°- Analista de Sistemas, 3°- Analista de Sistemas.
+- **Administración de Empresas**: 1°- Administración de Empresas, 2°- Administración de Empresas.
+
 ## Cuentas y contraseñas
 
 Al entrar por primera vez se precargan 5 cuentas de ejemplo, todas con la contraseña **`demo1234`**:
@@ -23,14 +30,14 @@ Al entrar por primera vez se precargan 5 cuentas de ejemplo, todas con la contra
 | Usuario | Rol |
 |---|---|
 | `secretaria` | Secretaría |
-| `docente` | Docente (Programación II, curso 2° B) |
+| `docente` | Docente (Programación II, 2°- Analista de Sistemas) |
 | `direccion` | Dirección |
 | `administrador` | Administrador |
-| `julian` | Estudiante (2° B) |
+| `julian` | Estudiante (2°- Analista de Sistemas) |
 
-Desde "Crear cuenta" se pueden registrar cuentas nuevas de cualquier rol (para estudiante, eligiendo el curso; para docente, con un detalle opcional de materia). El botón "↺ Reiniciar datos de la demo" borra todo (cuentas, notificaciones y confirmaciones) y vuelve a precargar las 5 cuentas de ejemplo.
+Desde "Crear cuenta" se pueden registrar cuentas nuevas de cualquier rol (para estudiante, eligiendo el curso de cualquiera de las dos carreras; para docente, con un detalle opcional de materia). El botón "↺ Reiniciar datos de la demo" borra todo (cuentas, notificaciones, confirmaciones y reportes) y vuelve a precargar las cuentas y el reporte de ejemplo.
 
-Nota: la pantalla de login ya no muestra estas credenciales de ejemplo (se sacó el texto para que la pantalla quede más simple); quedan documentadas acá para quien pruebe el prototipo.
+Nota: la pantalla de login no muestra estas credenciales de ejemplo (se sacó el texto para que la pantalla quede más simple); quedan documentadas acá para quien pruebe el prototipo.
 
 **Recuperar cuenta.** El link "¿Olvidaste tu usuario o tu contraseña?" de la pantalla de login busca la cuenta por usuario o por nombre completo, muestra el usuario asociado y deja elegir una contraseña nueva. Como esta demo no tiene un servidor de mail que verifique la identidad, alcanza con escribir el nombre — el propio formulario lo aclara. En una versión real, este paso se haría enviando un mail o SMS de verificación antes de dejar cambiar la contraseña.
 
@@ -60,7 +67,7 @@ En los tres casos no hace falta build ni configuración extra: son archivos est�
 
 ## Estado de los datos
 
-Los usuarios, notificaciones y confirmaciones son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por un docente, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app.
+Los usuarios, notificaciones, confirmaciones y reportes son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por un docente, un reporte a secretaría/dirección, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app.
 
 ## Botón "Instalar app"
 

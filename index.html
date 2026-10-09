@@ -367,7 +367,23 @@
 (function(){
   "use strict";
 
-  var COHORTES = { "1A": "1° A", "2B": "2° B", "3C": "3° C" };
+  var COHORTES = {
+    "1A": "1°- Analista de Sistemas", "2B": "2°- Analista de Sistemas", "3C": "3°- Analista de Sistemas",
+    "1AE": "1°- Administración de Empresas", "2AE": "2°- Administración de Empresas"
+  };
+  // Agrupa los cursos por carrera para que los selects los muestren separados (<optgroup>), no mezclados.
+  var CARRERAS = [
+    { nombre: "Analista de Sistemas", cursos: ["1A", "2B", "3C"] },
+    { nombre: "Administración de Empresas", cursos: ["1AE", "2AE"] }
+  ];
+  function cohorteOptionsHtml(selectedKey){
+    return CARRERAS.map(function(c){
+      var opts = c.cursos.map(function(k){
+        return '<option value="' + k + '"' + (selectedKey === k ? " selected" : "") + '>' + COHORTES[k] + '</option>';
+      }).join("");
+      return '<optgroup label="' + escapeHtml(c.nombre) + '">' + opts + '</optgroup>';
+    }).join("");
+  }
   var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Dirección", seguridad:"Administrador", estudiante:"Estudiante" };
   var DEMO_PASSWORD = "demo1234";
 
@@ -392,7 +408,9 @@
     { id:"est-7", nombre:"Tomás Ledesma", rol:"estudiante", initials:"TL", cohorte:"3C" },
     { id:"est-8", nombre:"Rocío Aguirre", rol:"estudiante", initials:"RA", cohorte:"3C" },
     { id:"est-9", nombre:"Iván Correa",   rol:"estudiante", initials:"IC", cohorte:"3C" },
-    { id:"est-10", nombre:"Sol Herrera",  rol:"estudiante", initials:"SH", cohorte:"2B" }
+    { id:"est-10", nombre:"Sol Herrera",  rol:"estudiante", initials:"SH", cohorte:"2B" },
+    { id:"est-11", nombre:"Lucas Benítez",  rol:"estudiante", initials:"LB", cohorte:"1AE" },
+    { id:"est-12", nombre:"Martina Acosta", rol:"estudiante", initials:"MA", cohorte:"2AE" }
   ];
 
   function hoursAgo(h){ return new Date(Date.now() - h*3600*1000).toISOString(); }
@@ -635,9 +653,7 @@
   function registerFormHtml(){
     var d = authDraft;
     var rolActual = d.rol || "estudiante";
-    var cohorteOptions = Object.keys(COHORTES).map(function(k){
-      return '<option value="' + k + '"' + (d.cohorte === k ? " selected" : "") + '>' + COHORTES[k] + '</option>';
-    }).join("");
+    var cohorteOptions = cohorteOptionsHtml(d.cohorte);
     var rolOptions = [
       ["estudiante","Estudiante"], ["secretaria","Secretaría"], ["docente","Docente"],
       ["direccion","Dirección"], ["seguridad","Administrador"]
@@ -851,7 +867,7 @@
   }
 
   function composeFormHtml(){
-    var cohorteOptions = Object.keys(COHORTES).map(function(k){ return '<option value="' + k + '">' + COHORTES[k] + '</option>'; }).join("");
+    var cohorteOptions = cohorteOptionsHtml(null);
     var studentOptions = allStudents(accounts)
       .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
 
