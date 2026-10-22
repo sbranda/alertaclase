@@ -11,7 +11,7 @@ El link que te pasé antes vive en el hosting de artefactos de Claude, dentro de
 Todo va junto en la misma raíz del sitio (sin subcarpetas), porque `manifest.json` y `service-worker.js` referencian los íconos con rutas relativas planas (`icon-192.png`, no `icons/icon-192.png`):
 
 - `index.html` — la app: pantalla de inicio de sesión / crear cuenta / recuperar cuenta, y luego las vistas de personal (secretaría, docentes, dirección, administrador) y de estudiante.
-  - Los docentes tienen además una pestaña **"Reportar situación"** para avisar a secretaría y/o dirección sobre la situación de un estudiante (podés marcar una de las dos casillas o las dos a la vez). Secretaría y Dirección ven esos reportes en su propia pestaña **"Avisos de docentes"**. Es un canal interno entre personal — el estudiante nunca ve estos reportes.
+  - Los docentes **no pueden enviar notificaciones directas a los estudiantes** — esa función es solo de secretaría, dirección y administrador. Los docentes tienen una vista distinta, con dos pestañas: **"Avisar a secretaría/dirección"**, para avisarles lo más importante desde su rol (podés marcar una de las dos casillas o las dos a la vez, adjuntar opcionalmente un archivo de hasta 3 MB, y el aviso no tiene que estar atado a un estudiante puntual), y **"Enviadas por mí"**, con los avisos que mandaron. Secretaría y Dirección ven esos avisos en su propia pestaña **"Avisos de docentes"**, con el archivo adjunto disponible para descargar si el docente sumó uno. Es un canal interno entre personal — los estudiantes nunca ven estos avisos.
 - `manifest.json` — nombre, ícono y colores que usa el sistema operativo al instalarla.
 - `service-worker.js` — cachea el shell de la app para que abra sin conexión.
 - `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-64.png` — íconos en los tamaños que piden Android/iOS/escritorio.
@@ -35,7 +35,7 @@ Al entrar por primera vez se precargan 5 cuentas de ejemplo, todas con la contra
 | `administrador` | Administrador |
 | `julian` | Estudiante (2°- Analista de Sistemas) |
 
-Desde "Crear cuenta" se pueden registrar cuentas nuevas de cualquier rol (para estudiante, eligiendo el curso de cualquiera de las dos carreras; para docente, con un detalle opcional de materia). El botón "↺ Reiniciar datos de la demo" borra todo (cuentas, notificaciones, confirmaciones y reportes) y vuelve a precargar las cuentas y el reporte de ejemplo.
+Desde "Crear cuenta" se pueden registrar cuentas nuevas de cualquier rol (para estudiante, eligiendo el curso de cualquiera de las dos carreras; para docente, con un detalle opcional de materia). El botón "↺ Reiniciar datos de la demo" borra todo (cuentas, notificaciones, confirmaciones y avisos de docentes) y vuelve a precargar las cuentas y el aviso de ejemplo.
 
 Nota: la pantalla de login no muestra estas credenciales de ejemplo (se sacó el texto para que la pantalla quede más simple); quedan documentadas acá para quien pruebe el prototipo.
 
@@ -67,7 +67,7 @@ En los tres casos no hace falta build ni configuración extra: son archivos est�
 
 ## Estado de los datos
 
-Los usuarios, notificaciones, confirmaciones y reportes son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por un docente, un reporte a secretaría/dirección, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app.
+Los usuarios, notificaciones, confirmaciones y avisos de docentes (con su archivo adjunto, si tienen uno) son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por secretaría/dirección/administrador, un aviso de un docente, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app (y los archivos adjuntos se guarden en un storage del backend en lugar de dentro del propio localStorage).
 
 ## Botón "Instalar app"
 
