@@ -378,14 +378,14 @@
       return '<optgroup label="' + escapeHtml(c.nombre) + '">' + opts + '</optgroup>';
     }).join("");
   }
-  var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Dirección", seguridad:"Administrador", estudiante:"Estudiante" };
+  var ROLE_LABELS = { secretaria:"Secretaría", docente:"Docente", direccion:"Director", seguridad:"Administrador", estudiante:"Estudiante" };
   var DEMO_PASSWORD = "demo1234";
 
   // Cuentas de ejemplo precargadas (login: usuario / demo1234).
   var SEED_ACCOUNTS = [
     { id:"staff-secretaria", nombre:"Secretaría Académica", usuario:"secretaria", rol:"secretaria", roleLabel:"Secretaría", initials:"SA" },
     { id:"staff-docente",    nombre:"Prof. Marina Ibarra",  usuario:"docente",    rol:"docente",    roleLabel:"Docente · Programación II", initials:"MI", cohorte:"2B" },
-    { id:"staff-direccion",  nombre:"Dirección de Carrera", usuario:"direccion",  rol:"direccion",  roleLabel:"Dirección", initials:"DC" },
+    { id:"staff-direccion",  nombre:"Dirección de Carrera", usuario:"direccion",  rol:"direccion",  roleLabel:"Director", initials:"DC" },
     { id:"staff-administrador", nombre:"Administración del Instituto", usuario:"administrador", rol:"seguridad", roleLabel:"Administrador", initials:"AD" },
     { id:"est-1", nombre:"Julián Rossi", usuario:"julian", rol:"estudiante", roleLabel:"Estudiante", initials:"JR", cohorte:"2B" }
   ];
@@ -426,6 +426,12 @@
       return false;
     }).map(function(u){ return u.id; });
   }
+  function allDocentes(accounts){
+    return accounts.filter(function(a){ return a.rol === "docente"; });
+  }
+  function allSecretarias(accounts){
+    return accounts.filter(function(a){ return a.rol === "secretaria"; });
+  }
 
   function seedNotifications(accounts){
     var n1 = { id:"n1", emisorId:"staff-direccion", titulo:"Corte de suministro eléctrico el viernes",
@@ -451,7 +457,7 @@
     };
     Object.keys(confirmedFor).forEach(function(nid){
       confirmedFor[nid].forEach(function(sid, i){
-        confirmations.push({ notifId:nid, estudianteId:sid, fecha: hoursAgo(Math.max(1, 40 - i*3)) });
+        confirmations.push({ notifId:nid, destinatarioId:sid, fecha: hoursAgo(Math.max(1, 40 - i*3)) });
       });
     });
 
@@ -543,16 +549,18 @@
     if (n.destTipo === "institucion") return "Toda la institución";
     if (n.destTipo === "cohorte") return COHORTES[n.destValor] || n.destValor;
     if (n.destTipo === "individual") { var u = byId(n.destValor); return u ? u.nombre : "Estudiante"; }
+    if (n.destTipo === "docente") { var d = byId(n.destValor); return d ? d.nombre : "Docente"; }
+    if (n.destTipo === "secretaria") { var s = byId(n.destValor); return s ? s.nombre : "Secretaría"; }
     return "";
   }
   function confirmationsFor(notifId){
     return notifState.confirmations.filter(function(c){ return c.notifId === notifId; });
   }
   function isConfirmedBy(notifId, studentId){
-    return notifState.confirmations.some(function(c){ return c.notifId === notifId && c.estudianteId === studentId; });
+    return notifState.confirmations.some(function(c){ return c.notifId === notifId && c.destinatarioId === studentId; });
   }
   function confirmedAt(notifId, studentId){
-    var c = notifState.confirmations.filter(function(c){ return c.notifId === notifId && c.estudianteId === studentId; })[0];
+    var c = notifState.confirmations.filter(function(c){ return c.notifId === notifId && c.destinatarioId === studentId; })[0];
     return c ? c.fecha : null;
   }
 
@@ -603,8 +611,7 @@
       '<input type="password" id="li-password" autocomplete="current-password" required></div>' +
       '<button type="submit" class="btn btn-primary">Ingresar</button>' +
       '</form>' +
-      '<button type="button" class="auth-reset-link" id="goto-recover">¿Olvidaste tu usuario o tu contraseña?</button>' +
-      '<button type="button" class="auth-reset-link" id="auth-reset-link">↺ Reiniciar datos de la demo</button>';
+      '<button type="button" class="auth-reset-link" id="goto-recover">¿Olvidaste tu usuario o tu contraseña?</button>';
   }
 
   function recoverFormHtml(){
@@ -650,7 +657,7 @@
     var cohorteOptions = cohorteOptionsHtml(d.cohorte);
     var rolOptions = [
       ["estudiante","Estudiante"], ["secretaria","Secretaría"], ["docente","Docente"],
-      ["direccion","Dirección"], ["seguridad","Administrador"]
+      ["direccion","Director"], ["seguridad","Administrador"]
     ].map(function(r){ return '<option value="' + r[0] + '"' + (rolActual === r[0] ? " selected" : "") + '>' + r[1] + '</option>'; }).join("");
 
     return '<form id="register-form" class="stack">' +
@@ -690,7 +697,6 @@
       renderAll();
       toast("Hola, " + acc.nombre.split(" ")[0]);
     });
-    document.getElementById("auth-reset-link").addEventListener("click", resetDemo);
     document.getElementById("goto-recover").addEventListener("click", function(){
       authTab = "recover"; authError = ""; recoverStep = "find"; recoverMatches = []; recoverMatch = null;
       renderAuthScreen();
@@ -817,13 +823,15 @@
     var isDocente = user.rol === "docente";
     var recibeReportes = user.rol === "secretaria" || user.rol === "direccion";
     // El docente ya no le envía avisos directo al estudiante: solo le avisa a
-    // secretaría/dirección, que son responsables de avisarle al estudiante si corresponde.
+    // secretaría/director, que son responsables de avisarle al estudiante si corresponde.
     var tabs = [];
     if (isDocente){
-      tabs.push(["reportar", "Avisar a secretaría/dirección"]);
+      tabs.push(["reportar", "Avisar a secretaría/director"]);
+      tabs.push(["notis", "Notificaciones recibidas"]);
       tabs.push(["enviadas", "Enviadas por mí"]);
     } else {
       tabs.push(["nueva", "Nueva notificación"]);
+      if (user.rol === "secretaria") tabs.push(["notis", "Notificaciones recibidas"]);
       tabs.push(["enviadas", "Enviadas por mí"]);
       if (isDireccion) tabs.push(["historial", "Historial institucional"]);
     }
@@ -837,9 +845,9 @@
       return '<button class="tab" role="tab" aria-selected="' + sel + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join("");
 
-    var subLine = isDocente ? ' — le avisás a secretaría y dirección lo más importante desde tu rol docente; ellas son responsables de avisarles a los estudiantes'
+    var subLine = isDocente ? ' — le avisás a secretaría y al director lo más importante desde tu rol docente, y recibís las notificaciones que te envíen directamente a vos'
                 : recibeReportes ? ' — emitís avisos para los estudiantes y recibís los reportes de los docentes'
-                : ' — emitís avisos para los estudiantes';
+                : ' — emitís avisos para estudiantes, docentes y secretaría';
 
     var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
       '<div class="sub">' + escapeHtml(user.roleLabel) + subLine + '</div></div></div>' +
@@ -855,28 +863,71 @@
     });
 
     var body = document.getElementById("tab-body");
-    if (activeTab === "nueva") body.innerHTML = composeFormHtml();
+    if (activeTab === "nueva") body.innerHTML = composeFormHtml(user);
     else if (activeTab === "enviadas") body.innerHTML = isDocente ? reportesSentHtml(user.id) : sentListHtml(user.id, false);
     else if (activeTab === "historial") body.innerHTML = sentListHtml(null, true);
     else if (activeTab === "reportar") body.innerHTML = reportFormHtml();
     else if (activeTab === "recibidos") body.innerHTML = receivedReportsHtml(user.rol);
+    else if (activeTab === "notis") body.innerHTML = recibidasHtml(user);
 
     if (activeTab === "nueva") wireComposeForm(user);
     else if (activeTab === "reportar") wireReportForm(user);
+    else if (activeTab === "notis") wireRecibidas(user);
   }
 
-  function composeFormHtml(){
+  // Bandeja de notificaciones recibidas directamente (no a través de un curso): hoy la usan
+  // el docente (RF-16) y secretaría — cualquier rol que pueda ser destinatario individual
+  // de una notificación de otro emisor, además de emitir las suyas.
+  function recibidasHtml(user){
+    var mine = notifState.notifications.filter(function(n){ return n.destinatarios.indexOf(user.id) !== -1; });
+    mine.sort(function(a,b){
+      var aUn = !isConfirmedBy(a.id, user.id), bUn = !isConfirmedBy(b.id, user.id);
+      if (aUn !== bUn) return aUn ? -1 : 1;
+      return new Date(b.fecha) - new Date(a.fecha);
+    });
+    if (!mine.length){
+      return '<div class="card empty"><h3>No tenés notificaciones por ahora</h3><p>Cuando alguien te envíe una notificación a vos directamente (no a un curso), va a aparecer acá.</p></div>';
+    }
+    return '<div class="stack">' + mine.map(function(n){ return feedCard(n, user.id); }).join("") + '</div>';
+  }
+
+  function wireRecibidas(user){
+    document.querySelectorAll(".ok-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var nid = btn.getAttribute("data-nid");
+        notifState.confirmations.push({ notifId: nid, destinatarioId: user.id, fecha: new Date().toISOString() });
+        persistNotifState();
+        renderStaffMain(user);
+        toast("Confirmado");
+      });
+    });
+  }
+
+  function composeFormHtml(user){
     var cohorteOptions = cohorteOptionsHtml(null);
     var studentOptions = allStudents(accounts)
       .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + ' — ' + COHORTES[u.cohorte] + '</option>'; }).join("");
+    var docenteOptions = allDocentes(accounts)
+      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + (u.roleLabel ? ' — ' + escapeHtml(u.roleLabel.replace(/^Docente( · )?/, "")) : "") + '</option>'; }).join("");
+    var docenteOpt = docenteOptions
+      ? '<label class="radio-opt"><input type="radio" name="f-dest" value="docente">Un docente' +
+        '<select class="extra" id="f-docente">' + docenteOptions + '</select></label>'
+      : "";
+
+    var secretariaOptions = allSecretarias(accounts)
+      .filter(function(u){ return !user || u.id !== user.id; })
+      .map(function(u){ return '<option value="' + u.id + '">' + escapeHtml(u.nombre) + '</option>'; }).join("");
+    var secretariaOpt = secretariaOptions
+      ? '<label class="radio-opt"><input type="radio" name="f-dest" value="secretaria">Secretaría' +
+        '<select class="extra" id="f-secretaria">' + secretariaOptions + '</select></label>'
+      : "";
 
     return '<form class="card stack" id="compose-form">' +
       '<div class="field"><label for="f-titulo">Título</label>' +
       '<input type="text" id="f-titulo" maxlength="90" placeholder="Ej: Cambio de aula para el examen final" required></div>' +
 
       '<div class="field"><label for="f-mensaje">Mensaje</label>' +
-      '<textarea id="f-mensaje" maxlength="600" placeholder="Escribí el aviso completo. Los estudiantes lo van a ver tal cual, sin poder responder." required></textarea>' +
-      '<span class="hint">Este es un canal de un solo sentido: el estudiante solo puede confirmar que lo leyó.</span></div>' +
+      '<textarea id="f-mensaje" maxlength="600" placeholder="Escribí el aviso completo. Los estudiantes lo van a ver tal cual, sin poder responder." required></textarea></div>' +
 
       '<div class="field"><label>Prioridad</label>' +
       '<div class="priority-row">' +
@@ -884,13 +935,15 @@
       '<label class="priority-opt urgente"><input type="radio" name="f-prioridad" value="urgente">Urgente</label>' +
       '</div></div>' +
 
-      '<div class="field"><label>Destinatarios — elegí una opción</label>' +
+      '<div class="field"><label>Destinatarios</label>' +
       '<div class="radio-row">' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="institucion" checked>Toda la institución</label>' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="cohorte">Un curso' +
       '<select class="extra" id="f-cohorte">' + cohorteOptions + '</select></label>' +
       '<label class="radio-opt"><input type="radio" name="f-dest" value="individual">Un estudiante' +
       '<select class="extra" id="f-estudiante">' + studentOptions + '</select></label>' +
+      docenteOpt +
+      secretariaOpt +
       '</div></div>' +
 
       '<div><button type="submit" class="btn btn-primary" style="width:auto;">Enviar notificación</button></div>' +
@@ -908,6 +961,8 @@
       var destTipo = form.querySelector('input[name="f-dest"]:checked').value;
       var destValor = destTipo === "cohorte" ? document.getElementById("f-cohorte").value
                      : destTipo === "individual" ? document.getElementById("f-estudiante").value
+                     : destTipo === "docente" ? document.getElementById("f-docente").value
+                     : destTipo === "secretaria" ? document.getElementById("f-secretaria").value
                      : null;
 
       var n = {
@@ -917,12 +972,13 @@
         destTipo: destTipo, destValor: destValor,
         fecha: new Date().toISOString()
       };
-      n.destinatarios = studentsIn(accounts, destTipo, destValor);
+      n.destinatarios = (destTipo === "docente" || destTipo === "secretaria") ? (destValor ? [destValor] : []) : studentsIn(accounts, destTipo, destValor);
       notifState.notifications.unshift(n);
       persistNotifState();
       activeTab = "enviadas";
       renderStaffMain(user);
-      toast("Notificación enviada a " + n.destinatarios.length + " estudiante" + (n.destinatarios.length===1?"":"s"));
+      var destLabel = destTipo === "docente" ? "docente" : destTipo === "secretaria" ? "persona de secretaría" : "estudiante";
+      toast("Notificación enviada a " + n.destinatarios.length + " " + destLabel + (n.destinatarios.length===1?"":"s"));
     });
   }
 
@@ -966,14 +1022,14 @@
     return p === "urgente" ? '<span class="badge badge-urgente">● Urgente</span>' : '<span class="badge badge-normal">Normal</span>';
   }
 
-  /* ---------------- Docente → Secretaría/Dirección: reportar situación ---------------- */
+  /* ---------------- Docente → Secretaría/Director: reportar situación ---------------- */
   function reportFormHtml(){
     return '<form class="card stack" id="report-form">' +
       '<div class="field"><label for="r-titulo">Título</label>' +
       '<input type="text" id="r-titulo" maxlength="90" placeholder="Ej: Ausencias reiteradas en el curso" required></div>' +
 
       '<div class="field"><label for="r-mensaje">Mensaje</label>' +
-      '<textarea id="r-mensaje" maxlength="600" placeholder="Describí lo que quieras avisarle a secretaría y/o dirección." required></textarea>' +
+      '<textarea id="r-mensaje" maxlength="600" placeholder="Describí lo que quieras avisarle a secretaría y/o al director." required></textarea>' +
       '<span class="hint">Este reporte es un aviso interno entre personal: los estudiantes no lo ven.</span></div>' +
 
       '<div class="field"><label for="r-archivo">Adjuntar archivo (opcional)</label>' +
@@ -989,7 +1045,7 @@
       '<div class="field"><label>Enviar a — podés elegir una opción o las dos al mismo tiempo</label>' +
       '<div class="radio-row">' +
       '<label class="radio-opt"><input type="checkbox" name="r-rol" value="secretaria" checked>Secretaría</label>' +
-      '<label class="radio-opt"><input type="checkbox" name="r-rol" value="direccion" checked>Dirección</label>' +
+      '<label class="radio-opt"><input type="checkbox" name="r-rol" value="direccion" checked>Director</label>' +
       '</div><span class="hint" id="r-rol-error" style="display:none; color:var(--danger, #b3432b);">Elegí al menos un destinatario.</span></div>' +
 
       '<div><button type="submit" class="btn btn-primary" style="width:auto;">Enviar reporte</button></div>' +
@@ -1058,7 +1114,7 @@
   function reportesSentHtml(docenteId){
     var list = notifState.reportes.filter(function(r){ return r.docenteId === docenteId; });
     if (!list.length){
-      return '<div class="card empty"><h3>Todavía no enviaste ningún aviso</h3><p>Cuando le avisés algo importante a secretaría o dirección, lo vas a ver acá, con la fecha y a quién se lo mandaste.</p></div>';
+      return '<div class="card empty"><h3>Todavía no enviaste ningún aviso</h3><p>Cuando le avisés algo importante a secretaría o al director, lo vas a ver acá, con la fecha y a quién se lo mandaste.</p></div>';
     }
     return '<div class="stack">' + list.map(reportCard).join("") + '</div>';
   }
@@ -1099,7 +1155,7 @@
 
     var html = '<div class="topbar"><div><h2>Hola, ' + escapeHtml(user.nombre.split(" ")[0]) + '</h2>' +
       '<div class="sub">' + (COHORTES[user.cohorte] || "") + '</div></div></div>' +
-      '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, dirección y el administrador. Solo podés confirmar que los leíste con «OK» — no se pueden responder ni reenviar.</span></div>';
+      '<div class="callout"><span class="dot"></span><span>Acá recibís los avisos de secretaría, el director y el administrador.</span></div>';
 
     if (!mine.length){
       html += '<div class="card empty"><h3>No tenés avisos por ahora</h3><p>Cuando alguien te envíe una notificación, va a aparecer acá.</p></div>';
@@ -1111,7 +1167,7 @@
     document.querySelectorAll(".ok-btn").forEach(function(btn){
       btn.addEventListener("click", function(){
         var nid = btn.getAttribute("data-nid");
-        notifState.confirmations.push({ notifId: nid, estudianteId: user.id, fecha: new Date().toISOString() });
+        notifState.confirmations.push({ notifId: nid, destinatarioId: user.id, fecha: new Date().toISOString() });
         persistNotifState();
         renderStudentMain(user);
         toast("Confirmado");

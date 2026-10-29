@@ -10,8 +10,9 @@ El link que te pasé antes vive en el hosting de artefactos de Claude, dentro de
 
 Todo va junto en la misma raíz del sitio (sin subcarpetas), porque `manifest.json` y `service-worker.js` referencian los íconos con rutas relativas planas (`icon-192.png`, no `icons/icon-192.png`):
 
-- `index.html` — la app: pantalla de inicio de sesión / crear cuenta / recuperar cuenta, y luego las vistas de personal (secretaría, docentes, dirección, administrador) y de estudiante.
-  - Los docentes **no pueden enviar notificaciones directas a los estudiantes** — esa función es solo de secretaría, dirección y administrador. Los docentes tienen una vista distinta, con dos pestañas: **"Avisar a secretaría/dirección"**, para avisarles lo más importante desde su rol (podés marcar una de las dos casillas o las dos a la vez, adjuntar opcionalmente un archivo de hasta 3 MB, y el aviso no tiene que estar atado a un estudiante puntual), y **"Enviadas por mí"**, con los avisos que mandaron. Secretaría y Dirección ven esos avisos en su propia pestaña **"Avisos de docentes"**, con el archivo adjunto disponible para descargar si el docente sumó uno. Es un canal interno entre personal — los estudiantes nunca ven estos avisos.
+- `index.html` — la app: pantalla de inicio de sesión / crear cuenta / recuperar cuenta, y luego las vistas de personal (secretaría, docentes, director, administrador) y de estudiante.
+  - Secretaría, director y administrador comparten el mismo formulario **"Nueva notificación"**, y además de elegir toda la institución, un curso o un estudiante puntual, ahora también pueden elegir **un docente en particular** o **una persona de secretaría en particular** como destinatario (el formulario nunca ofrece la propia cuenta que está emitiendo el aviso). Quien recibe uno de esos avisos puntuales lo ve en una pestaña nueva, **"Notificaciones recibidas"**, y lo confirma con el mismo botón «OK» que usa un estudiante.
+  - Los docentes **no pueden enviar notificaciones directas a los estudiantes** — esa función es solo de secretaría, director y administrador. Los docentes tienen una vista distinta, con tres pestañas: **"Avisar a secretaría/director"**, para avisarles lo más importante desde su rol (podés marcar una de las dos casillas o las dos a la vez, adjuntar opcionalmente un archivo de hasta 3 MB, y el aviso no tiene que estar atado a un estudiante puntual), **"Notificaciones recibidas"**, con las notificaciones puntuales que les mandó secretaría, director o administrador, y **"Enviadas por mí"**, con los avisos que mandaron a secretaría/director. Secretaría y Director ven esos avisos en su propia pestaña **"Avisos de docentes"**, con el archivo adjunto disponible para descargar si el docente sumó uno. Es un canal interno entre personal — los estudiantes nunca ven estos avisos.
 - `manifest.json` — nombre, ícono y colores que usa el sistema operativo al instalarla.
 - `service-worker.js` — cachea el shell de la app para que abra sin conexión.
 - `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `favicon-64.png` — íconos en los tamaños que piden Android/iOS/escritorio.
@@ -31,9 +32,11 @@ Al entrar por primera vez se precargan 5 cuentas de ejemplo, todas con la contra
 |---|---|
 | `secretaria` | Secretaría |
 | `docente` | Docente (Programación II, 2°- Analista de Sistemas) |
-| `direccion` | Dirección |
+| `direccion` | Director |
 | `administrador` | Administrador |
 | `julian` | Estudiante (2°- Analista de Sistemas) |
+
+(El usuario de login de la cuenta de ejemplo sigue siendo `direccion` — solo cambió la etiqueta del rol que se ve en la app, de "Dirección" a "Director".)
 
 Desde "Crear cuenta" se pueden registrar cuentas nuevas de cualquier rol (para estudiante, eligiendo el curso de cualquiera de las dos carreras; para docente, con un detalle opcional de materia). El botón "↺ Reiniciar datos de la demo" borra todo (cuentas, notificaciones, confirmaciones y avisos de docentes) y vuelve a precargar las cuentas y el aviso de ejemplo.
 
@@ -67,7 +70,7 @@ En los tres casos no hace falta build ni configuración extra: son archivos est�
 
 ## Estado de los datos
 
-Los usuarios, notificaciones, confirmaciones y avisos de docentes (con su archivo adjunto, si tienen uno) son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por secretaría/dirección/administrador, un aviso de un docente, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app (y los archivos adjuntos se guarden en un storage del backend en lugar de dentro del propio localStorage).
+Los usuarios, notificaciones, confirmaciones y avisos de docentes (con su archivo adjunto, si tienen uno) son datos de demostración que se guardan en el `localStorage` del navegador de cada persona — no hay backend todavía, así que un aviso enviado por secretaría/director/administrador, un aviso de un docente, o una cuenta nueva creada, no las ve otra persona en otro dispositivo o navegador. Para la versión real, el paso siguiente es el que ya quedó en la especificación funcional: una API + base de datos compartida (sección 10, "Arquitectura tecnológica propuesta"), para que las cuentas y los avisos se sincronicen entre todos los que usan la app (y los archivos adjuntos se guarden en un storage del backend en lugar de dentro del propio localStorage).
 
 ## Botón "Instalar app"
 
